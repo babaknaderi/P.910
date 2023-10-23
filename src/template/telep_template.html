@@ -415,6 +415,18 @@ $(function() {
 		initializeSetup();
 
 		loadTextPlaceHolders();
+        // load the order
+        let order = readCookie(config['cookieName']+'_telep_order');
+        console.log(order);
+        if (order == null){
+            r = [1,2,3,4];			
+            r = shuffle(r);
+            r.push(5);
+            order = r.join('_'); 
+            createCookie(config['cookieName']+'_telep_order', order, config['forceRetrainingInHours']*60);
+        }
+        $("#telep_order").val(order);
+
 		generate_training_section();
 		generate_rating_section();
 		avoidAnsweringBeforeWatchingThrough();
@@ -1443,13 +1455,13 @@ var trainingStimulusPlayed;
 function playedVideoTraining(id){
 	let id_num= id.substring(1);
 	played= $("#video_n_finish_{0}".f(id)).val();
-	$('input[name="{0}"]'.f(id)).off('change');
+	$('input[name^="{0}"]'.f(id)).off('change');
 	eval("trainingStimulusPlayed["+id_num+"-1]=1;");
 	if (trainingStimulusPlayed.reduce(getSum, 0) ==  trainingStimulusPlayed.length){
 		createCookie(config['cookieName']+"_training","un_important",config['forceRetrainingInHours']*60);
 	}
 	if ($('span[id="'+id+'"]').attr("data-src-clip") == config['knownQuestionInTrainingUrl']){
-		element = $('input[name="t{0}"]'.f(id_num));
+		element = $('input[name^="t{0}"]'.f(id_num));
 		element.unbind();
 		element.on('change', onValueChangeForTpQuestionInTraining);
 	}
@@ -1480,6 +1492,8 @@ function getSum(total, num) {
 function onValueChangeForTpQuestionInTraining(){
 	if(!('knownQuestionInTrainingAns' in config))
 		return;
+    // for now
+    return;
 	if ($( this ).val()  != config['knownQuestionInTrainingAns']){
 		alert('Error: your answer does not seem to be correct. Watch the video again carefully and follow the instruction?');
 		$(this).prop('checked', false);
@@ -1514,11 +1528,11 @@ function playedVideoQ(id){
 	console.log("playedVideoQ  continue");
 
 	if ($('span[id="'+id+'"]').attr("data-src-clip") == config['knownQuestionUrl']){
-		element = $('input[name="q{0}"]'.f(id_num));
+		element = $('input[name^="q{0}"]'.f(id_num));
 		element.unbind();
 		element.on('change', onValueChangeForTpQuestion);
 	}else{
-		$('input[name="q{0}"]'.f(id_num)).off('change');
+		$('input[name^="q{0}_"]'.f(id_num)).off('change');
 		console.log("playedVideoQ remove change listener");
 		// check if already this HIT is counted
 		if (!hitCounterIncreased){
@@ -1683,9 +1697,110 @@ function on_setup_performed(status){
 </script>
 <script type="text/javascript">
 
-/*
-	Input could be 5 or 9
-*/
+
+function getTelepScale(order, is_training){
+	let p ='q';    
+	if (is_training){
+         p = 't';        
+    }
+
+    var overhead = '<div class="tab-pane fade {2}" id="'+p+'{0}-panel" role="tabpanel" aria-labelledby="'+p+'{0}-tab"><p></p>'+
+	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
+	'<p style="margin-top:10px;">{0}. Watch the following video clip and answer to the following questions? </p> <div class="row"> <p align="center">'+
+	'<span class="velmnt" id="'+p+'{0}" data-src-clip="{1}" data-onfinished="playedVideoTraining" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>';
+
+    var s_truest = 
+    '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
+	'<fieldset id="fieldset_'+p+'{0}_trust" class="trainingFieldset" title="">'+
+    '<p style="margin-top:10px;">I would <b>trust</b> a person using this avatar?</p>'+
+    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
+    
+    '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="5">Strongly agree</label></div></td><td class="c">5</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="4">Agree</label></div></td><td class="c">4</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="3">Neither agree nor disagree</label></div></td><td class="c">3</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="2">Disagree</label></div></td><td class="c">2</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="1"required="">Strongly disagree</label></div></td><td class="c">1</td></tr>'+
+	
+    '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;    
+
+    var s_realistic = 
+    '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
+	'<fieldset id="fieldset_'+p+'{0}_real" class="trainingFieldset" title="">'+
+    '<p style="margin-top:10px;">How <b>realistic</b> is this avatar?</p>'+
+    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
+    
+    '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="5">Extremely realistic</label></div></td><td class="c">5</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="4">Very realistic</label></div></td><td class="c">4</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="3">Moderately realistic</label></div></td><td class="c">3</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="2">Slightly realistic</label></div></td><td class="c">2</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="1"required="">Not at all realistic</label></div></td><td class="c">1</td></tr>'+
+	
+    '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
+
+    var s_confort = 
+    '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
+	'<fieldset id="fieldset_'+p+'{0}_conf" class="trainingFieldset" title="">'+
+    '<p style="margin-top:10px;">How <b>comfortable</b> would you be using this avatar?</p>'+
+    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
+    
+    '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="5">Extremely comfortable</label></div></td><td class="c">5</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="4">Very comfortable</label></div></td><td class="c">4</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="3">Moderately comfortable</label></div></td><td class="c">3</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="2">Slightly comfortable</label></div></td><td class="c">2</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="1"required="">Not at all comfortable</label></div></td><td class="c">1</td></tr>'+
+	
+    '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
+
+    var s_interact = 
+    '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
+	'<fieldset id="fieldset_'+p+'{0}_interact" class="trainingFieldset" title="">'+
+    '<p style="margin-top:10px;">How <b>comfortable</b> would you be interacting with this avatar?</p>'+
+    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
+    
+    '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="5">Extremely comfortable</label></div></td><td class="c">5</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="4">Very comfortable</label></div></td><td class="c">4</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="3">Moderately comfortable</label></div></td><td class="c">3</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="2">Slightly comfortable</label></div></td><td class="c">2</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="1"required="">Not at all comfortable</label></div></td><td class="c">1</td></tr>'+
+	
+    '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
+
+    var s_accurate = 
+    '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
+	'<fieldset id="fieldset_'+p+'{0}_accurate" class="trainingFieldset" title="">'+
+    '<p style="margin-top:10px;">How <b>accurate</b> are the expression of the avatar (right) compared to the real video (left)?</p>'+
+    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
+    
+    '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="5">Extremely accurate</label></div></td><td class="c">5</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="4">Very accurate</label></div></td><td class="c">4</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="3">Moderately accurate</label></div></td><td class="c">3</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="2">Slightly accurate</label></div></td><td class="c">2</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="1"required="">Not at all accurate</label></div></td><td class="c">1</td></tr>'+
+	
+    '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
+
+	
+    list ={
+			'1': s_truest,
+			'2': s_realistic,
+			'3': s_confort,
+			'4': s_interact,
+			'5': s_accurate
+		}
+		
+    var html = overhead;
+    tmp_list = order.split("_");
+    for (i=0; i<tmp_list.length; i++){
+        tmp = list[tmp_list[i]];
+        tmp = tmp.replace("_elmt_X", "_elmt_" + i);
+        html = html + tmp;
+    }
+    if (!is_training){
+        html = html.replaceAll("t{0}", "q{0}").replaceAll("trainingFieldset", "ratingFieldset").replaceAll("T{0}", "Q{0}").replaceAll("playedAudioTraining", "playedAudioQ");
+    }
+    return html;
+
+}
 
 function getACRScale(type, is_training){
 	let p ='q';
@@ -1710,6 +1825,7 @@ function getACRScale(type, is_training){
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label></div></td><td class="c">2</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="1"required="">Bad</label></div></td><td class="c">1</td></tr>';
 
+
 	if (type== 5){
 		return template5;
 	}
@@ -1725,6 +1841,7 @@ function getACRScale(type, is_training){
 */
 function generate_training_section(){
 	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#T{0}-panel" id="T{0}-tab " role="tab" aria-controls="T{0}" {2}>Q. {0}</a></li>';
+    /*
 	dcr_tab ='<div class="tab-pane fade {2}" id="T{0}-panel" role="tabpanel" aria-labelledby="T{0}-tab"><p></p>'+
 	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
 	'<p style="margin-top:10px;">{0}. How do you rate the quality of the following video clip? </p> <div class="row"> <p align="center">'+
@@ -1733,7 +1850,10 @@ function generate_training_section(){
 	'<fieldset id="fieldset_t{0}" class="trainingFieldset" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The quality is</th><th class="c" >Score</th></tr></thead><tbody>'+
 	getACRScale(config['scale_points'], true)+
 	'</tbody></table></fieldset><p></p></div> <div class="col-sm-4"></div></div> </div>';
-
+    */
+    // set the order of scale
+	order = $("#telep_order").val();
+    var dcr_tab = getTelepScale(order, true);
 	// this will show which url was shown by in which question as their orther will be randomized
 	input_template= '<input id="T{0}_URL" name="T{0}_URL" type="hidden" value="{1}" />';
 
@@ -1762,7 +1882,8 @@ function generate_training_section(){
 */
 function generate_rating_section(){
 	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#Q{0}-panel" id="Q{0}-tab " role="tab" aria-controls="Q{0}" {2}>Q. {0}</a></li>';
-	dcr_tab ='<div class="tab-pane fade {2}" id="Q{0}-panel" role="tabpanel" aria-labelledby="Q{0}-tab"><p></p>'+
+	/*
+    dcr_tab ='<div class="tab-pane fade {2}" id="Q{0}-panel" role="tabpanel" aria-labelledby="Q{0}-tab"><p></p>'+
 	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
 	'<p style="margin-top:10px;">{0}. How do you rate the quality of the following video clip?? </p> <div class="row"> <p align="center">'+
 	'<span class="velmnt" id="Q{0}" data-src-clip="{1}" data-onfinished="playedVideoQ" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>'+
@@ -1770,6 +1891,10 @@ function generate_rating_section(){
 	'<fieldset id="fieldset_q{0}" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The quality is</th><th class="c" >Score</th></tr></thead><tbody>'+
 	getACRScale(config['scale_points'], false)+
 	'</tbody></table></fieldset><p></p></div> <div class="col-sm-4"></div></div> </div>';
+    */
+    // set the order of scale
+	order = $("#telep_order").val();
+    var dcr_tab = getTelepScale(order, false);
 
 	// this will show which url was shown by in which question as their orther will be randomized
 	input_template= '<input id="Q{0}_URL" name="Q{0}_URL" type="hidden" value="{1}" />';
@@ -2382,11 +2507,11 @@ function avoidAnsweringBeforeWatchingThrough(){
 	var i;
 	// Training section
 	for (i = 0; i < config['trainingUrls'].length; i++) {
-		$('input[name="t{0}"]'.f(i+1)).on('change', alertForbiddenChange);
+		$('input[name^="t{0}"]'.f(i+1)).on('change', alertForbiddenChange);
 	}
 	// Rating section
 	for (i = 0; i < config['questionUrls'].length; i++) {
-		$('input[name="q{0}"]'.f(i+1)).on('change', alertForbiddenChange);
+		$('input[name^="q{0}"]'.f(i+1)).on('change', alertForbiddenChange);
 	}
 }
 
@@ -2413,6 +2538,8 @@ function avoidAnsweringBeforeWatchingThrough(){
 <input id="start_video_loading_time" name="start_video_loading_time" type="hidden" value="" />
 <input id="video_loading_duration" name="video_loading_duration_ms" type="hidden" value="" />
 <input id="internet_speed_estimate" name="internet_speed_estimate_Mb" type="hidden" value="" />
+
+<input id="telep_order" name="telep_order" type="hidden" value="bak_sig" />
 
 <!-- just for backup -->
 <input id="matrix_t1_circle_history" name="matrix_t1_circle_history" type="hidden" value="" />
