@@ -99,7 +99,7 @@ border-bottom-left-radius: 5px;  border-bottom-right-radius: 5px;}
 </style>
 
 <script type="text/javascript">
-
+/*
 var config ={
 	debug:"true",
 	cookieName:"tp_TMG7G9EY7W",
@@ -148,11 +148,11 @@ var config ={
     randomizeTrainingQuestions:"true",
     randomizeRatingQuestions:"true",
     emailAddress: "ic3ai@outlook.com"
-}
+} */
 
-/*
+
 var config ={
-	debug:"true",
+	debug:"{{cfg.debug}}",
 	cookieName:"{{cfg.cookie_name}}",
 	qualificationCookieName:"{{cfg.qual_cookie_name}}",
 	qualificationValidFor:43200,
@@ -198,7 +198,6 @@ var config ={
     randomizeRatingQuestions:"true",
     emailAddress: "{{cfg.contact_email}}"
 }
-*/
 
 //---- for video player
 max_accepted_extra_playing_time_sec = 2.5;
@@ -421,7 +420,6 @@ $(function() {
         if (order == null){
             r = [1,2,3,4];			
             r = shuffle(r);
-            r.push(5);
             order = r.join('_'); 
             createCookie(config['cookieName']+'_telep_order', order, config['forceRetrainingInHours']*60);
         }
@@ -503,8 +501,12 @@ $(function() {
 		cookie_debug_status=cookie_debug_status+"Counter:"+howManyHITsAnswered+"*";
 		addBrowserInfo(cookie_debug_status);
 
-
-
+		if (config['debug']== 'true'){
+				activate_calibration_section(true);
+				activate_setup_section(true);
+				activate_training_section(true);
+				activate_rating_section(true);
+			}
 	}catch(err){
 		console.error(err);
 		recordError(err.name,err.message, true);
@@ -1528,11 +1530,11 @@ function playedVideoQ(id){
 	console.log("playedVideoQ  continue");
 
 	if ($('span[id="'+id+'"]').attr("data-src-clip") == config['knownQuestionUrl']){
-		element = $('input[name^="q{0}"]'.f(id_num));
+		element = $('input[name^="qQ0}"]'.f(id_num));
 		element.unbind();
 		element.on('change', onValueChangeForTpQuestion);
 	}else{
-		$('input[name^="q{0}_"]'.f(id_num)).off('change');
+		$('input[name^="Q{0}_"]'.f(id_num)).off('change');
 		console.log("playedVideoQ remove change listener");
 		// check if already this HIT is counted
 		if (!hitCounterIncreased){
@@ -1699,9 +1701,9 @@ function on_setup_performed(status){
 
 
 function getTelepScale(order, is_training){
-	let p ='q';    
+	let p ='Q';
 	if (is_training){
-         p = 't';        
+         p = 't';
     }
 
     var overhead = '<div class="tab-pane fade {2}" id="'+p+'{0}-panel" role="tabpanel" aria-labelledby="'+p+'{0}-tab"><p></p>'+
@@ -1784,8 +1786,7 @@ function getTelepScale(order, is_training){
 			'1': s_truest,
 			'2': s_realistic,
 			'3': s_confort,
-			'4': s_interact,
-			'5': s_accurate
+			'4': s_interact
 		}
 		
     var html = overhead;
@@ -1888,7 +1889,7 @@ function generate_rating_section(){
 	'<p style="margin-top:10px;">{0}. How do you rate the quality of the following video clip?? </p> <div class="row"> <p align="center">'+
 	'<span class="velmnt" id="Q{0}" data-src-clip="{1}" data-onfinished="playedVideoQ" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>'+
 	'<div class="row">	<div class="col-sm-4"></div>	<div class="col-sm-4">'+
-	'<fieldset id="fieldset_q{0}" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The quality is</th><th class="c" >Score</th></tr></thead><tbody>'+
+	'<fieldset id="fieldset_Q{0}" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The quality is</th><th class="c" >Score</th></tr></thead><tbody>'+
 	getACRScale(config['scale_points'], false)+
 	'</tbody></table></fieldset><p></p></div> <div class="col-sm-4"></div></div> </div>';
     */
@@ -2925,63 +2926,41 @@ function avoidAnsweringBeforeWatchingThrough(){
 
 <!-- Instruction about impairments-->
 <section class="container disabled_section" id="impairments">
-		<div class="panel panel-primary">
-			<div class="panel-heading">
-				<h3 class="panel-title">
-					<a data-target="#instructionImp" data-toggle="collapse" >Instructions about ratings (only once)</a>
-
-				</h3>
-			</div>
-			<div  class="panel-collapse collapse in" id="instructionImp">
-			<div class="panel-body">
-			<p>Almost ready to start. </p>
-			<p>Here are <b>some</b> of impairments that you may observe within the test with an example. Please read the followings carefully and watch the videos before continuing:
-			</p>
-
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">
+        <a data-target="#instructionImp" data-toggle="collapse">Instructions about ratings (only once)</a>
+      </h3>
+    </div>
+    <div class="panel-collapse collapse in" id="instructionImp">
+      <div class="panel-body">
+        <p>Almost ready to start. </p>
+        <p>Thank you for participating in this subjective study aimed at assessing trustworthiness and realism of avatars. Your feedback will help us understand how users perceive and interact with avatars. Please provide honest and thoughtful responses to the following questions.: </p>
+        <ul>
+          <li> Type 1 questions: You are given a video of avatar and asked a question about trustworthiness, realism, and being comfortable using/interacting with the avatar in online meetings. You task is to rate the question in the scale 1 to 5.</li>
 			<ul>
-
-			<li> The video (or part of it) can be <b>fragmented</b>. It means that part of the video sample is played <b>blocky</b> and <b>dismembered</b>.</li>
-
-			<div class="row">
-				<p>Here is an example:</p>
-				<p align="center">
-						<span class="velmnt" id="ins_id1" data-src-clip="https://p910.azureedge.net/video/instruction_videos/videoSRC14_block_2.mp4" data-onfinished="playedVideoIns"></span>
-				</p>
-			</div>
-
-
-			<li> The video (or part of it) could be <b>not smooth</b> rather <b>jerky</b>, <b>stuttering</b>, and <b>wobbly</b>. In anotehr term, partly <b>discountinud</b>. </li>
-			<div class="row">
-				<p>Here is an example:</p>
-				<p align="center">
-						<span class="velmnt" id="ins_id2" data-src-clip="https://p910.azureedge.net/video/instruction_videos/videoSRC14_dis_2.mp4" data-onfinished="playedVideoIns"></span>
-				</p>
-			</div>
-
-				<li> The video (or part of it) cloud be <b>blurred</b>, <b>unclear</b> or <b>washed out</b>.</li>
-			<div class="row">
-				<p>Here is an example:</p>
-				<p align="center">
-						<span class="velmnt" id="ins_id3" data-src-clip="https://p910.azureedge.net/video/instruction_videos/videoSRC14_blur_2.mp4" data-onfinished="playedVideoIns"></span>
-				</p>
-			</div>
-
-			<li> It could also be a case that a combination of the above impairments happen.</li>
-
-			</ul>
-
-			<b>Important notes:</b>
-			<ul>
-				<li> Impairments can happen in specific area (corners or center of image) and for a short period of time within a video clip.
-					So it is very important that when watching a video, fully concentrate on the entire scene. If something distracting you,
-					please watch the video again.</li>
-				<li>Your ratings will be used for scientific work, <u>please treat them very serious to contribute with valid results </u>.</li>
-				<li>You may think that an impairment your recognized was due to your Internet connection, but whatever you see in the
-					videos are created beforehand, and <b>not related to your network</b>, so <u>consider them all when you rate the <b>overall quality</b></u>.</li>
-			</ul>
-			</div>
-			</div>
-		</div>
+            <li>5. Strongly agree</li>
+            <li>4. Agree</li>
+            <li>3. Neither agree nor disagree</li>
+            <li>2. Disagree</li>
+            <li>1. Strongly disagree</li>
+          </ul>
+          <li> Type 2 questions: You are given a side by side real video or a person and it's avatar version, and your task is to compare the expression of the avatar to that of the real video and rate this comparison in the sale of 1 to 5.</li>
+          <ul>
+            <li>5. Extremely accurate</li>
+            <li>4. Very accurate</li>
+            <li>2. Slightly accurate</li>
+            <li>2. Disagree</li>
+            <li>1. Not at all accurate</li>
+          </ul>
+        </ul>
+        <b>Important notes:</b>
+        <ul>
+          <li> .</li>
+        </ul>
+      </div>
+    </div>
+  </div>
 </section>
 
 
@@ -2997,7 +2976,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 				<div class="panel-body">
 				<p> Please answer the following <b class="question_number_training"> 0 </b> questions.
 					<p>For each question, please carefully watch the video clip by clicking on the play button in full-screen mode.
-					At the end, you should judge its quality by using one of the <x class="scale_levels">9</x> levels of the given scale.
+					At the end, you should judge its quality by using one of the <x class="scale_levels">5</x> levels of the given scale.
 					Observe carefully the entire video clip before making your judgment.</p>
 
 				   <p> <b>Note</b> that the scale will be activated when the corresponding video clip played until the end. </p>
@@ -3044,7 +3023,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 			<div class="panel-body">
 				<p> Please answer the following <b class="question_number"> 0 </b> questions.</p>
 				<p>For each question, please carefully watch the video clip by clicking on the play button in full-screen mode.
-					At the end, you should judge its quality by using one of the <x class="scale_levels">9</x> levels of the given scale.
+					At the end, you should judge its quality by using one of the <x class="scale_levels">5</x> levels of the given scale.
 					Observe carefully the entire video clip before making your judgment.</p>
 
 				   <p> <b>Note</b> that the scale will be activated when the corresponding video clip played until the end. </p>
