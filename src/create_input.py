@@ -182,6 +182,7 @@ def add_clips_random(clips, n_clips_per_session, output_df):
     :param output_df:
     :return:
     """
+    print(clips.columns)
     n_clips = clips['pvs'].count()
     n_sessions = math.ceil(n_clips / n_clips_per_session)
     needed_clips = n_sessions * n_clips_per_session
@@ -191,8 +192,8 @@ def add_clips_random(clips, n_clips_per_session, output_df):
     #   check the method: clips_selection_strategy
     clips = clips.sample(frac=1)
 
-    clips_sessions = np.reshape(clips['pvs'], (n_sessions, n_clips_per_session))
-    vpp_sessions = np.reshape(clips['vpp'], (n_sessions, n_clips_per_session))
+    clips_sessions = np.reshape(clips['pvs'].to_numpy(), (n_sessions, n_clips_per_session))
+    vpp_sessions = np.reshape(clips['vpp'].to_numpy(), (n_sessions, n_clips_per_session))
 
     for q in range(n_clips_per_session):
         output_df[f'Q{q}'] = clips_sessions[:, q]
@@ -318,6 +319,8 @@ def create_input_for_acr(cfg, df, output_path):
         tmp = tmp.sample(n=n_trappings, replace=True)
         trap_source = tmp['trapping_pvs'].dropna()
         trap_ans_source = tmp['trapping_ans'].dropna()
+        if 'trapping_vpp' not in tmp.columns:
+            tmp['trapping_vpp'] = 100
         trap_vpp = tmp['trapping_vpp'].dropna()
 
         full_trappings = np.tile(trap_source.to_numpy(), (n_trappings // trap_source.count()) + 1)[:n_trappings]
@@ -341,6 +344,8 @@ def create_input_for_acr(cfg, df, output_path):
         n_gold_clips = n_sessions
         gold_clip_source = df['gold_clips_pvs'].dropna()
         gold_clip_ans_source = df['gold_clips_ans'].dropna()
+        if 'gold_clips_vpp' not in df.columns:
+            df['gold_clips_vpp'] = 100
         gold_clip_vpp = df['gold_clips_vpp'].dropna()
 
         full_gold_clips = np.tile(gold_clip_source.to_numpy(),

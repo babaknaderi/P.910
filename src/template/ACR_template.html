@@ -1678,7 +1678,7 @@ function generate_training_section(){
 	dcr_tab ='<div class="tab-pane fade {2}" id="T{0}-panel" role="tabpanel" aria-labelledby="T{0}-tab"><p></p>'+
 	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
 	'<p style="margin-top:10px;">{0}. How do you rate the quality of the following video clip? </p> <div class="row"> <p align="center">'+
-	'<span class="velmnt" id="t{0}" data-src-clip="{1}" data-onfinished="playedVideoTraining" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>'+
+	'<span class="velmnt" id="t{0}" data-src-clip="{1}" data-onfinished="playedVideoTraining" data-scale="{3}%">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>'+
 	'<div class="row">	<div class="col-sm-4"></div>	<div class="col-sm-4">'+
 	'<fieldset id="fieldset_t{0}" class="trainingFieldset" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The quality is</th><th class="c" >Score</th></tr></thead><tbody>'+
 	getACRScale(config['scale_points'], true)+
@@ -1696,12 +1696,12 @@ function generate_training_section(){
 	for (i = 0; i < urls.length; i++) {
 		if (i==0){
 			$('#trainingTabs').append(dcr_nav_tab.f(i+1,'active', 'ria-selected="true"'));
-			$('#nav-tabContent').append(dcr_tab.f(i+1, urls[i],'in active'));
+			$('#nav-tabContent').append(dcr_tab.f(i+1, urls[i].url,'in active', urls[i].vpp));
 		}else{
 			$('#trainingTabs').append(dcr_nav_tab.f(i+1,'',''));
-			$('#nav-tabContent').append(dcr_tab.f(i+1, urls[i],''));
+			$('#nav-tabContent').append(dcr_tab.f(i+1, urls[i].url,'', urls[i].vpp));
 		}
-		$('#nav-tabContent').append(input_template.f(i+1, urls[i]));
+		$('#nav-tabContent').append(input_template.f(i+1, urls[i].url));
 	}
 
 	trainingStimulusPlayed = new Array(urls.length).fill(0);
@@ -1715,7 +1715,7 @@ function generate_rating_section(){
 	dcr_tab ='<div class="tab-pane fade {2}" id="Q{0}-panel" role="tabpanel" aria-labelledby="Q{0}-tab"><p></p>'+
 	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
 	'<p style="margin-top:10px;">{0}. How do you rate the quality of the following video clip?? </p> <div class="row"> <p align="center">'+
-	'<span class="velmnt" id="Q{0}" data-src-clip="{1}" data-onfinished="playedVideoQ" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>'+
+	'<span class="velmnt" id="Q{0}" data-src-clip="{1}" data-onfinished="playedVideoQ" data-scale="{3}%">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>'+
 	'<div class="row">	<div class="col-sm-4"></div>	<div class="col-sm-4">'+
 	'<fieldset id="fieldset_q{0}" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The quality is</th><th class="c" >Score</th></tr></thead><tbody>'+
 	getACRScale(config['scale_points'], false)+
@@ -1733,12 +1733,12 @@ function generate_rating_section(){
 	for (i = 0; i < urls.length; i++) {
 		if (i==0){
 			$('#nav-tab-ul').append(dcr_nav_tab.f(i+1,'active', 'ria-selected="true"'));
-			$('#nav-tabContent-rating').append(dcr_tab.f(i+1, urls[i],'in active'));
+			$('#nav-tabContent-rating').append(dcr_tab.f(i+1, urls[i].url,'in active', urls[i].vpp));
 		}else{
 			$('#nav-tab-ul').append(dcr_nav_tab.f(i+1,'',''));
-			$('#nav-tabContent-rating').append(dcr_tab.f(i+1, urls[i],''));
+			$('#nav-tabContent-rating').append(dcr_tab.f(i+1, urls[i].url,'', urls[i].vpp));
 		}
-		$('#nav-tabContent-rating').append(input_template.f(i+1, urls[i]));
+		$('#nav-tabContent-rating').append(input_template.f(i+1, urls[i].url));
 	}
 
 }

@@ -242,20 +242,43 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
     n_gold = int(create_input_cfg['number_of_gold_clips_per_session']) if 'number_of_gold_clips_per_session' in \
                                                                           create_input_cfg else 0
     rating_urls = []
-    for i in range(0, n_clips):
-        rating_urls.append('${Q'+str(i)+'}')
-    if n_traps > 1:
-        raise Exception("More than 1 trapping question is not supported.")
-    if n_traps == 1:
-        rating_urls.append('${TP_CLIP}')
+    screen_size_perc = False
+    if 'video_player' in create_input_cfg and create_input_cfg['video_player'] == 'scale_from_csv':
+        screen_size_perc = True
+         # 'dummy':'dummy' is added becuase of current bug in AMT for replacing variable names
+        for i in range(0, n_clips):
+            #rating_urls.append('${Q'+str(i)+'}')
+            rating_urls.append({"url": f"${{Q{i}}}", "vpp": f"${{Q{i}_vpp}}", 'dummy': 'dummy'})
+        if n_traps > 1:
+            raise Exception("More than 1 trapping question is not supported.")
+        if n_traps == 1:
+            #rating_urls.append('${TP_CLIP}')
+            rating_urls.append({"url": "${TP_CLIP}", "vpp": "${TP_VPP}", 'dummy': 'dummy'})
 
-    if n_gold > 1:
-        raise Exception("more than 1 gold question is not supported.")
-    if n_gold == 1:
-        rating_urls.append('${GOLD_CLIP}')
-        config['gold_ans'] = "${GOLD_ANS}"
+        if n_gold > 1:
+            raise Exception("more than 1 gold question is not supported.")
+        if n_gold == 1:
+            #rating_urls.append('${GOLD_CLIP}')
+            rating_urls.append({"url": "${GOLD_CLIP}", "vpp": "${GOLD_VPP}", 'dummy': 'dummy'})
+            config['gold_ans'] = "${GOLD_ANS}"
+        else:
+            config['gold_ans'] = ""
+        
     else:
-        config['gold_ans'] = ""
+        for i in range(0, n_clips):
+            rating_urls.append('${Q'+str(i)+'}')
+        if n_traps > 1:
+            raise Exception("More than 1 trapping question is not supported.")
+        if n_traps == 1:
+            rating_urls.append('${TP_CLIP}')
+
+        if n_gold > 1:
+            raise Exception("more than 1 gold question is not supported.")
+        if n_gold == 1:
+            rating_urls.append('${GOLD_CLIP}')
+            config['gold_ans'] = "${GOLD_ANS}"
+        else:
+            config['gold_ans'] = ""
     config['rating_urls'] = rating_urls
 
     # trappings
@@ -270,6 +293,7 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
     for _, row in df_trap.head(n=1).iterrows():
         trap_url = row['trapping_pvs']
         trap_ans = row['trapping_ans']
+        trapp_vpp = row['trapping_vpp'] if screen_size_perc else 0
 
     config['training_trap_urls'] = trap_url
     config['training_trap_ans'] = trap_ans
@@ -277,9 +301,20 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
     # training urls
     df_train = pd.read_csv(training_path)
     train_urls = []
+    if screen_size_perc and 'training_vpp' not in df_train.columns:
+        df_train['training_vpp'] = 100
+
     for _, row in df_train.iterrows():
-        train_urls.append(row['training_pvs'])
-    train_urls.append(trap_url)
+        if screen_size_perc:
+            train_urls.append({"url": row['training_pvs'], "vpp": row['training_vpp'], 'dummy': 'dummy'})
+        else:
+            train_urls.append(row['training_pvs'])
+    
+    if screen_size_perc:
+        train_urls.append({"url": trap_url, "vpp": trapp_vpp, 'dummy': 'dummy'})
+    else:
+        train_urls.append(trap_url)
+    
 
     config['training_urls'] = train_urls
 
