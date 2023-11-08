@@ -7,18 +7,16 @@
 """
 
 import argparse
-import os
 import asyncio
-import base64
+import configparser as CP
+import os
 import random
 import string
 
-import configparser as CP
 import pandas as pd
+from jinja2 import Template
 
 import create_input as ca
-
-from jinja2 import Template
 from azure_clip_storage import AzureClipStorage, TrappingSamplesInStore, GoldSamplesInStore
 
 
@@ -214,6 +212,7 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
     viewing_condition_cfg = master_cfg['viewing_condition']
 
     config = {}
+    config['rating_questions'] = hit_app_html_cfg['rating_questions']
     config['debug'] = hit_app_html_cfg['debug'] if 'debug' in hit_app_html_cfg else 'false'
     config['cookie_name'] = hit_app_html_cfg['cookie_name'] if 'cookie_name' in hit_app_html_cfg else \
         f'acr_{get_rand_id()}'
@@ -501,7 +500,7 @@ def get_path(test_method):
                                              'assets_master_script/result_parser_template.cfg')
 
     #   for teleport
-    tlp_template_path_a = os.path.join(os.path.dirname(__file__), 'template/telep_template_a.html')
+    tlp_template_path_a = os.path.join(os.path.dirname(__file__), 'template/telep_template_c.html')
     tlp_template_path_b = os.path.join(os.path.dirname(__file__), 'template/telep_template_b.html')
     tlp_cfg_template_path = os.path.join(os.path.dirname(__file__),
                                          'assets_master_script/result_parser_template.cfg')
@@ -578,7 +577,7 @@ async def main(cfg, test_method, args):
     if test_method in ['dcr', 'ccr']:
         await create_hit_app_dcr(cfg, template_path, output_html_file, args.training_clips, args.trapping_clips,
                                  general_cfg, n_HITs, test_method == 'ccr')
-    elif test_method in[ 'acr', 'tlp_a', 'tlp_b']:
+    elif test_method in ['acr', 'tlp_a', 'tlp_b']:
         await create_hit_app_acr(cfg, template_path, output_html_file, args.training_clips, args.trapping_clips,
                                  general_cfg, n_HITs)
     elif test_method == 'acr-hr':
