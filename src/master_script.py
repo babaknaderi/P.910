@@ -500,8 +500,7 @@ def get_path(test_method):
                                              'assets_master_script/result_parser_template.cfg')
 
     #   for teleport
-    tlp_template_path_a = os.path.join(os.path.dirname(__file__), 'template/telep_template_a.html')
-    tlp_template_path_b = os.path.join(os.path.dirname(__file__), 'template/telep_template_b.html')
+    tlp_template_path_a = os.path.join(os.path.dirname(__file__), 'template/telep_template.html')
     tlp_cfg_template_path = os.path.join(os.path.dirname(__file__),
                                          'assets_master_script/result_parser_template.cfg')
 
@@ -510,8 +509,7 @@ def get_path(test_method):
         ('dcr'): (dcr_template_path, dcr_ccr_cfg_template_path),
         ('acr-hr'): (acrhr_template_path, acrhr_cfg_template_path),
         ('ccr'): (dcr_template_path, dcr_ccr_cfg_template_path),
-        ('tlp_a'): (tlp_template_path_a, tlp_cfg_template_path),
-        ('tlp_b'): (tlp_template_path_b, tlp_cfg_template_path)
+        ('tlp'): (tlp_template_path_a, tlp_cfg_template_path),
     }
 
     template_path, cfg_path = method_to_template[(test_method)]
@@ -577,7 +575,7 @@ async def main(cfg, test_method, args):
     if test_method in ['dcr', 'ccr']:
         await create_hit_app_dcr(cfg, template_path, output_html_file, args.training_clips, args.trapping_clips,
                                  general_cfg, n_HITs, test_method == 'ccr')
-    elif test_method in ['acr', 'tlp_a', 'tlp_b']:
+    elif test_method in ['acr', 'tlp']:
         await create_hit_app_acr(cfg, template_path, output_html_file, args.training_clips, args.trapping_clips,
                                  general_cfg, n_HITs)
     elif test_method == 'acr-hr':
@@ -612,7 +610,7 @@ if __name__ == '__main__':
     # check input arguments
     args = parser.parse_args()
 
-    methods = ['acr', 'dcr', 'acr-hr', 'pc', 'ccr', 'tlp_a', 'tlp_b']
+    methods = ['acr', 'dcr', 'acr-hr', 'pc', 'ccr', 'tlp']
     test_method = args.method.lower()
     assert test_method in methods, f"No such a method supported, please select between {methods}"
     assert os.path.exists(args.cfg), f"No config file in {args.cfg}"

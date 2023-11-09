@@ -677,6 +677,11 @@ function isQualificationDone(){
 
 	if(!$("input[name='7_plate3']").val()) return;
 	if(!$("input[name='7_plate4']").val()) return;
+
+	if(!$("select[name='9_avatar_usage'] option:selected").val()) return;
+	if(!$("select[name='10_online_meetings'] option:selected").val()) return;
+	if(!$("select[name='11_video_meeting'] option:selected").val()) return;
+
 	if (performed_visual_acuity_test)
 		validateQualificationAnswer();
 }
