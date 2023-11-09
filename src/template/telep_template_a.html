@@ -186,9 +186,9 @@ var config ={
 		"plate3":29,
 		"plate4":5
 	},
+	ratingQuestions: {{cfg.rating_questions}},
 	questionUrls: {{cfg.rating_urls}},
     trainingUrls: {{cfg.training_urls}},
-
     knownQuestionInTrainingUrl:"{{cfg.training_trap_urls}}",
     knownQuestionInTrainingAns: "{{cfg.training_trap_ans}}",
 
@@ -389,6 +389,10 @@ function clearInputs(){
     $(':checkbox, :radio').prop('checked', false);
 }
 
+function range(size, startAt = 1) {
+    return [...Array(size).keys()].map(i => i + startAt);
+}
+
 //-------------------- Initialize page -------------------
 
 const Hide_HIT_REASON = Object.freeze({"MAX_ACHIVED":1, "QUALIFICATON":2, "QUALIFICATION_FAILED_NOW":3, "AUTO_TEST_FAILED":4})
@@ -418,7 +422,8 @@ $(function() {
         let order = readCookie(config['cookieName']+'_telep_order');
         console.log(order);
         if (order == null){
-            r = [1,2,3,4];			
+            r = range(config['ratingQuestions']);
+            r = range(config['ratingQuestions']);
             r = shuffle(r);
             order = r.join('_'); 
             createCookie(config['cookieName']+'_telep_order', order, config['forceRetrainingInHours']*60);
@@ -1569,9 +1574,6 @@ function showPreviousQuestionInRatingSection(){
 	if (id+1<=count)
 		$('#next-rating').removeClass('disabled');
 }
-
-
-
 </script>
 <script type="text/javascript">
 //----- All methods for hiding/showing sections
@@ -1692,13 +1694,21 @@ function on_setup_performed(status){
 	activate_rating_section(true);
 
 }
-
-
-
-
 </script>
 <script type="text/javascript">
 
+function getRatingSection(questionType, questionName, question, answers){
+	html_section = '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
+	'<fieldset id="fieldset_'+questionType+'{0}_'+questionName+'" class="trainingFieldset" title="">'+
+    '<p style="margin-top:10px;">'+question+'</p>'+
+    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>';
+	for (const [key, value] of answers) {
+			html_section += '<tr><td><div class="radio" ><label > <input type="radio" name="'+questionType+'{0}_'+questionName+'" value="'+key+'">'+value+'</label></div></td><td class="c">'+key+'</td></tr>';
+		}
+    html_section +='</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
+
+	return html_section;
+};
 
 function getTelepScale(order, is_training){
 	let p ='Q';
@@ -1711,84 +1721,31 @@ function getTelepScale(order, is_training){
 	'<p style="margin-top:10px;">{0}. Watch the following video clip and answer to the following questions? </p> <div class="row"> <p align="center">'+
 	'<span class="velmnt" id="'+p+'{0}" data-src-clip="{1}" data-onfinished="playedVideoTraining" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>';
 
-    var s_truest = 
-    '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
-	'<fieldset id="fieldset_'+p+'{0}_trust" class="trainingFieldset" title="">'+
-    '<p style="margin-top:10px;">I would <b>trust</b> a person using this avatar?</p>'+
-    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
-    
-    '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="5">Strongly agree</label></div></td><td class="c">5</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="4">Agree</label></div></td><td class="c">4</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="3">Neither agree nor disagree</label></div></td><td class="c">3</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="2">Disagree</label></div></td><td class="c">2</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="1"required="">Strongly disagree</label></div></td><td class="c">1</td></tr>'+
-	
-    '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;    
+    answers = [[5,'Strongly agree'], [4,'Agree'], [3,'Neutral'], [2,'Disagree'], [1,'Strongly disagree']];
 
-    var s_realistic = 
-    '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
-	'<fieldset id="fieldset_'+p+'{0}_real" class="trainingFieldset" title="">'+
-    '<p style="margin-top:10px;">How <b>realistic</b> is this avatar?</p>'+
-    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
-    
-    '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="5">Extremely realistic</label></div></td><td class="c">5</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="4">Very realistic</label></div></td><td class="c">4</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="3">Moderately realistic</label></div></td><td class="c">3</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="2">Slightly realistic</label></div></td><td class="c">2</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="1"required="">Not at all realistic</label></div></td><td class="c">1</td></tr>'+
-	
-    '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
+    var s_trust = getRatingSection(p,'trust', 'I would trust a person using this avatar', answers);
+    var s_realistic = getRatingSection(p, 'realistic', 'This avatar is realistic', answers);
+    var s_comfortableusing = getRatingSection(p, 'comfortableusing', 'I would be comfortable using this avatar for work', answers);
+    var s_comfortableinteracting =getRatingSection(p, 'comfortableinteracting', 'I would be comfortable interacting with this avatar for work', answers);
+    var s_appropriate =getRatingSection(p, 'appropriate', 'The avatar is appropriate for work', answers);
+    var s_creepy =getRatingSection(p, 'creepy', 'The avatar is creepy', answers);
+    var s_formal =getRatingSection(p, 'formal', 'The avatar looks formal (not cartoonish)', answers);
+    var s_lookslike =getRatingSection(p, 'lookslike', 'The avatar (left) looks like the person (right)', answers);
+    var s_facialexpressions =getRatingSection(p, 'facialexpressions', 'The avatar’s facial expressions (left) are accurate with the video (right)', answers);
 
-    var s_confort = 
-    '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
-	'<fieldset id="fieldset_'+p+'{0}_conf" class="trainingFieldset" title="">'+
-    '<p style="margin-top:10px;">How <b>comfortable</b> would you be using this avatar?</p>'+
-    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
-    
-    '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="5">Extremely comfortable</label></div></td><td class="c">5</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="4">Very comfortable</label></div></td><td class="c">4</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="3">Moderately comfortable</label></div></td><td class="c">3</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="2">Slightly comfortable</label></div></td><td class="c">2</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="1"required="">Not at all comfortable</label></div></td><td class="c">1</td></tr>'+
-	
-    '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
 
-    var s_interact = 
-    '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
-	'<fieldset id="fieldset_'+p+'{0}_interact" class="trainingFieldset" title="">'+
-    '<p style="margin-top:10px;">How <b>comfortable</b> would you be interacting with this avatar?</p>'+
-    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
-    
-    '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="5">Extremely comfortable</label></div></td><td class="c">5</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="4">Very comfortable</label></div></td><td class="c">4</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="3">Moderately comfortable</label></div></td><td class="c">3</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="2">Slightly comfortable</label></div></td><td class="c">2</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="1"required="">Not at all comfortable</label></div></td><td class="c">1</td></tr>'+
-	
-    '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
-
-    var s_accurate = 
-    '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
-	'<fieldset id="fieldset_'+p+'{0}_accurate" class="trainingFieldset" title="">'+
-    '<p style="margin-top:10px;">How <b>accurate</b> are the expression of the avatar (right) compared to the real video (left)?</p>'+
-    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
-    
-    '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="5">Extremely accurate</label></div></td><td class="c">5</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="4">Very accurate</label></div></td><td class="c">4</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="3">Moderately accurate</label></div></td><td class="c">3</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="2">Slightly accurate</label></div></td><td class="c">2</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="1"required="">Not at all accurate</label></div></td><td class="c">1</td></tr>'+
-	
-    '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
-
-	
     list ={
-			'1': s_truest,
+			'1': s_trust,
 			'2': s_realistic,
-			'3': s_confort,
-			'4': s_interact
+			'3': s_comfortableusing,
+			'4': s_comfortableinteracting,
+			'5': s_appropriate,
+			'6': s_creepy,
+			'7': s_formal,
+			'8': s_lookslike,
+			'9': s_facialexpressions
 		}
-		
+
     var html = overhead;
     tmp_list = order.split("_");
     for (i=0; i<tmp_list.length; i++){
@@ -2658,7 +2615,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 
 			  <fieldset class="qualificationFieldset">
 				  <div class="form-group">
-					  <label for="sel2">4.	When was the last time you participated in an <u>video quality test</u>?</label>
+					  <label for="sel2">4.	When was the last time you participated in a <u>video quality test</u>?</label>
 					  <select class="form-control" id="sel2" name="4_video_test" required="">
 							<option value="">Please select</option>
 							<option value="0d">Today</option>
@@ -2781,7 +2738,50 @@ function avoidAnsweringBeforeWatchingThrough(){
 					  	<div class="row" style="text-align:center;margin:50px;display:none;" id="vat_container">
 						  <p id="result_vat"></p>
 						</div>
-					</fieldset>
+			  </fieldset>
+
+
+			  <fieldset class="qualificationFieldset">
+				  <div class="form-group">
+					  <label for="sel3">9.	How often do you use an avatar?</label>
+					  <select class="form-control" id="sel3" name="9_avatar_usage" required="">
+							<option value="">Please select</option>
+							<option value="D">Every day</option>
+							<option value="W">A few times a week</option>
+							<option value="M">A few times a month</option>
+							<option value="Y">A few times a year</option>
+							<option value="N">Never</option>
+					  </select>
+				  </div>
+			  </fieldset>
+
+			  <fieldset class="qualificationFieldset">
+				  <div class="form-group">
+					  <label for="sel4">10.	How often do you have online meetings?</label>
+					  <select class="form-control" id="sel4" name="10_online_meetings" required="">
+							<option value="">Please select</option>
+							<option value="D">Every day</option>
+							<option value="W">A few times a week</option>
+							<option value="M">A few times a month</option>
+							<option value="Y">A few times a year</option>
+							<option value="N">Never</option>
+					  </select>
+				  </div>
+			  </fieldset>
+
+			  <fieldset class="qualificationFieldset">
+				  <div class="form-group">
+					  <label for="sel5">11.	How often do you share your video during an online meetings? </label>
+					  <select class="form-control" id="sel5" name="11_video_meeting" required="">
+							<option value="">Please select</option>
+							<option value="D">Every day</option>
+							<option value="W">A few times a week</option>
+							<option value="M">A few times a month</option>
+							<option value="Y">A few times a year</option>
+							<option value="N">Never</option>
+					  </select>
+				  </div>
+			  </fieldset>
 
 			</div>
 		</div>

@@ -1711,75 +1711,75 @@ function getTelepScale(order, is_training){
 	'<p style="margin-top:10px;">{0}. Watch the following video clip and answer to the following questions? </p> <div class="row"> <p align="center">'+
 	'<span class="velmnt" id="'+p+'{0}" data-src-clip="{1}" data-onfinished="playedVideoTraining" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>';
 
-    var s_truest = 
+    var s_truest =
     '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
 	'<fieldset id="fieldset_'+p+'{0}_trust" class="trainingFieldset" title="">'+
-    '<p style="margin-top:10px;">I would <b>trust</b> a person using this avatar?</p>'+
+    '<p style="margin-top:10px;">I would <b>trust</b> a person using this avatar in a meeting with me.</p>'+
     '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
-    
-    '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="5">Strongly agree</label></div></td><td class="c">5</td></tr>'+
+
+    '<tr><td><div class="radio" ><label > <input type="radio" name="'+p+'{0}_trust" value="5">Strongly agree</label></div></td><td class="c">5</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="4">Agree</label></div></td><td class="c">4</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="3">Neither agree nor disagree</label></div></td><td class="c">3</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="2">Disagree</label></div></td><td class="c">2</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_trust" value="1"required="">Strongly disagree</label></div></td><td class="c">1</td></tr>'+
-	
-    '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;    
 
-    var s_realistic = 
-    '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
-	'<fieldset id="fieldset_'+p+'{0}_real" class="trainingFieldset" title="">'+
-    '<p style="margin-top:10px;">How <b>realistic</b> is this avatar?</p>'+
-    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
-    
-    '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="5">Extremely realistic</label></div></td><td class="c">5</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="4">Very realistic</label></div></td><td class="c">4</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="3">Moderately realistic</label></div></td><td class="c">3</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="2">Slightly realistic</label></div></td><td class="c">2</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="1"required="">Not at all realistic</label></div></td><td class="c">1</td></tr>'+
-	
     '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
 
-    var s_confort = 
+    var s_realistic =
+    '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
+	'<fieldset id="fieldset_'+p+'{0}_real" class="trainingFieldset" title="">'+
+    '<p style="margin-top:10px;">How well does this avatar mimic a real person?</p>'+
+    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
+
+    '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="5">Cannot tell the difference between</label></div></td><td class="c">5</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="4">If I look hard, I can tell the difference</label></div></td><td class="c">4</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="3">Close enough, I don’t mind the differences</label></div></td><td class="c">3</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="2">The difference is clear but can be overlooked</label></div></td><td class="c">2</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_real" value="1"required="">Not at all realistic</label></div></td><td class="c">1</td></tr>'+
+
+    '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
+
+    var s_confort =
     '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
 	'<fieldset id="fieldset_'+p+'{0}_conf" class="trainingFieldset" title="">'+
-    '<p style="margin-top:10px;">How <b>comfortable</b> would you be using this avatar?</p>'+
+    '<p style="margin-top:10px;">How <b>comfortable</b> would you be using this avatar if others were also using it?</p>'+
     '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
-    
+
     '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="5">Extremely comfortable</label></div></td><td class="c">5</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="4">Very comfortable</label></div></td><td class="c">4</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="3">Moderately comfortable</label></div></td><td class="c">3</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="2">Slightly comfortable</label></div></td><td class="c">2</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_conf" value="1"required="">Not at all comfortable</label></div></td><td class="c">1</td></tr>'+
-	
+
     '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
 
-    var s_interact = 
+    var s_interact =
     '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
 	'<fieldset id="fieldset_'+p+'{0}_interact" class="trainingFieldset" title="">'+
-    '<p style="margin-top:10px;">How <b>comfortable</b> would you be interacting with this avatar?</p>'+
+    '<p style="margin-top:10px;">How <b>comfortable</b> would you be interacting with this avatar if you were also represented as an avatar? </p>'+
     '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
-    
+
     '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="5">Extremely comfortable</label></div></td><td class="c">5</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="4">Very comfortable</label></div></td><td class="c">4</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="3">Moderately comfortable</label></div></td><td class="c">3</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="2">Slightly comfortable</label></div></td><td class="c">2</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_interact" value="1"required="">Not at all comfortable</label></div></td><td class="c">1</td></tr>'+
-	
+
     '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
 
-    var s_accurate = 
+    var s_accurate =
     '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
 	'<fieldset id="fieldset_'+p+'{0}_accurate" class="trainingFieldset" title="">'+
     '<p style="margin-top:10px;">How <b>accurate</b> are the expression of the avatar (right) compared to the real video (left)?</p>'+
     '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>'+
+
     '<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="5">Extremely accurate</label></div></td><td class="c">5</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="4">Very accurate</label></div></td><td class="c">4</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="3">Moderately accurate</label></div></td><td class="c">3</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="2">Slightly accurate</label></div></td><td class="c">2</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_accurate" value="1"required="">Not at all accurate</label></div></td><td class="c">1</td></tr>'+
-    '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
 
-	
+    '</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
     list ={
 			'1': s_accurate
 		}

@@ -500,7 +500,7 @@ def get_path(test_method):
                                              'assets_master_script/result_parser_template.cfg')
 
     #   for teleport
-    tlp_template_path_a = os.path.join(os.path.dirname(__file__), 'template/telep_template_c.html')
+    tlp_template_path_a = os.path.join(os.path.dirname(__file__), 'template/telep_template_a.html')
     tlp_template_path_b = os.path.join(os.path.dirname(__file__), 'template/telep_template_b.html')
     tlp_cfg_template_path = os.path.join(os.path.dirname(__file__),
                                          'assets_master_script/result_parser_template.cfg')
