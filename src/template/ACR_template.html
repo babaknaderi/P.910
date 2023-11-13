@@ -1807,7 +1807,7 @@ function fullscreen_closed(e, video, caller){
       	var idT=video.id;
 		var id=idT.substring(7,idT.length);
 		reset_video_player(idT, video);
-
+		video.style.marginTop = 0;
 		$("#velmnt_"+id).show();
 
         //restore the old height and weight
@@ -2005,6 +2005,9 @@ function playVideo_continue(id, video, is_dcr){
 		video_play_back_size = id+':('+new_w+'x'+new_h+')';
 		$("#play_back_size_px").val($("#play_back_size_px").val()+';'+video_play_back_size);
 		console.log(video_play_back_size);
+		if (new_h<fullscreen_height){
+			video.style.marginTop = Math.floor((fullscreen_height-new_h)/2);
+		}		
 		video.setAttribute("width",new_w);
 		video.setAttribute("height",new_h);
 		
