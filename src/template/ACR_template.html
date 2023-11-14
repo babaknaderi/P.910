@@ -1714,7 +1714,7 @@ function generate_rating_section(){
 	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#Q{0}-panel" id="Q{0}-tab " role="tab" aria-controls="Q{0}" {2}>Q. {0}</a></li>';
 	dcr_tab ='<div class="tab-pane fade {2}" id="Q{0}-panel" role="tabpanel" aria-labelledby="Q{0}-tab"><p></p>'+
 	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
-	'<p style="margin-top:10px;">{0}. How do you rate the quality of the following video clip?? </p> <div class="row"> <p align="center">'+
+	'<p style="margin-top:10px;">{0}. How do you rate the quality of the following video clip? </p> <div class="row"> <p align="center">'+
 	'<span class="velmnt" id="Q{0}" data-src-clip="{1}" data-onfinished="playedVideoQ" data-scale="{3}%">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>'+
 	'<div class="row">	<div class="col-sm-4"></div>	<div class="col-sm-4">'+
 	'<fieldset id="fieldset_q{0}" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The quality is</th><th class="c" >Score</th></tr></thead><tbody>'+
@@ -2443,7 +2443,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 					<li><b>Training (every <b class="training_time"> 0 </b>):</b> <b class="question_number_training"> 0 </b> questions, same as "Ratings" but appears just once a day</li>
 					<li><b>Rating:</b> Watch <b class="question_number"> 0 </b> video clips and give <b>your opinion about the quality of the video</b> you watched.</li>
 				</ul>
-				<p>Note that you should watch the videos in full screen size.</p>
+				<p>You should watch the videos in full screen mode, however, the actual video size may be smaller with black borders framing any unfilled areas on the display.</p>
 				<p>You should follow the below mentioned rules, otherwise your answers will be invalid.</p>
 				<p><b>Rules:</b></p>
 				<ul>
@@ -2810,7 +2810,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 			</div>
 
 
-			<li> The video (or part of it) could be <b>not smooth</b> rather <b>jerky</b>, <b>stuttering</b>, and <b>wobbly</b>. In anotehr term, partly <b>discountinud</b>. </li>
+			<li> The video (or part of it) could be <b>not smooth</b> rather <b>jerky</b>, <b>stuttering</b>, and <b>wobbly</b>. In another term, partly <b>discountinud</b>. </li>
 			<div class="row">
 				<p>Here is an example:</p>
 				<p align="center">
@@ -2818,11 +2818,20 @@ function avoidAnsweringBeforeWatchingThrough(){
 				</p>
 			</div>
 
-				<li> The video (or part of it) cloud be <b>blurred</b>, <b>unclear</b> or <b>washed out</b>.</li>
+				<li> The video (or part of it) could be <b>blurred</b>, <b>unclear</b> or <b>washed out</b>.</li>
 			<div class="row">
 				<p>Here is an example:</p>
 				<p align="center">
 						<span class="velmnt" id="ins_id3" data-src-clip="https://p910.azureedge.net/video/instruction_videos/videoSRC14_blur_2.mp4" data-onfinished="playedVideoIns"></span>
+				</p>
+			</div>
+
+			<li> The video may appear <b>resized</b> and <b>small</b>. Do <b>not</b> consider its size when rating; focus solely on evaluating the video's quality as presented.
+				 The videos also may contain QR codes, which you should disregard in your rating.</li>
+			<div class="row">
+				<p>Here is an example:</p>
+				<p align="center">
+						<span class="velmnt" id="ins_id4" data-scale="20%" data-src-clip="https://p910.azureedge.net/video/instruction_videos/GaLs_high_trim_qr__original__clipped_232_412.mp4" data-onfinished="playedVideoIns"></span>
 				</p>
 			</div>
 
