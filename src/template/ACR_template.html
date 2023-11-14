@@ -1095,7 +1095,7 @@ function check_resolution(){
 	let w = Math.floor(window.screen.width * window.devicePixelRatio);
 	let h = Math.floor(window.screen.height * window.devicePixelRatio);
 	console.log("screen is {0}x{1}".f(w,h));
-	$("#device_resolution").val("{0}x{1}".f(w,h));
+	$("#device_resolution").val("{0}x{1}(2)".f(w,h, window.devicePixelRatio));
 	if (w>= config.min_resolution.w && h>= config.min_resolution.h){
 		return true;
 	}
@@ -1685,7 +1685,7 @@ function generate_training_section(){
 	'</tbody></table></fieldset><p></p></div> <div class="col-sm-4"></div></div> </div>';
 
 	// this will show which url was shown by in which question as their orther will be randomized
-	input_template= '<input id="T{0}_URL" name="T{0}_URL" type="hidden" value="{1}" />';
+	input_template= '<input id="T{0}_URL" name="T{0}_URL" type="hidden" value="{1}" /> <input id="T{0}_vpp" name="T{0}_vpp" type="hidden" value="{2}" />';
 
     if (JSON.parse(config['randomizeTrainingQuestions']))
 		urls = shuffle(config['trainingUrls']);
@@ -1701,7 +1701,7 @@ function generate_training_section(){
 			$('#trainingTabs').append(dcr_nav_tab.f(i+1,'',''));
 			$('#nav-tabContent').append(dcr_tab.f(i+1, urls[i].url,'', urls[i].vpp));
 		}
-		$('#nav-tabContent').append(input_template.f(i+1, urls[i].url));
+		$('#nav-tabContent').append(input_template.f(i+1, urls[i].url, urls[i].vpp));
 	}
 
 	trainingStimulusPlayed = new Array(urls.length).fill(0);
@@ -1722,7 +1722,7 @@ function generate_rating_section(){
 	'</tbody></table></fieldset><p></p></div> <div class="col-sm-4"></div></div> </div>';
 
 	// this will show which url was shown by in which question as their orther will be randomized
-	input_template= '<input id="Q{0}_URL" name="Q{0}_URL" type="hidden" value="{1}" />';
+	input_template= '<input id="Q{0}_URL" name="Q{0}_URL" type="hidden" value="{1}" /> <input id="Q{0}_vpp" name="Q{0}_vpp" type="hidden" value="{2}" />';
 
 	if (JSON.parse(config['randomizeRatingQuestions']))
 		urls = shuffle(config['questionUrls']);
@@ -1738,7 +1738,7 @@ function generate_rating_section(){
 			$('#nav-tab-ul').append(dcr_nav_tab.f(i+1,'',''));
 			$('#nav-tabContent-rating').append(dcr_tab.f(i+1, urls[i].url,'', urls[i].vpp));
 		}
-		$('#nav-tabContent-rating').append(input_template.f(i+1, urls[i].url));
+		$('#nav-tabContent-rating').append(input_template.f(i+1, urls[i].url, urls[i].vpp));
 	}
 
 }
