@@ -189,7 +189,7 @@ var config ={
 		"plate3":29,
 		"plate4":5
 	},
-	ratingQuestions: {{cfg.rating_questions}},
+	numberOfRatingQuestions: {{cfg.number_of_rating_questions}},
 	questionUrls: {{cfg.rating_urls}},
     trainingUrls: {{cfg.training_urls}},
     knownQuestionInTrainingUrl:"{{cfg.training_trap_urls}}",
@@ -201,54 +201,7 @@ var config ={
     randomizeRatingQuestions:"true",
     emailAddress: "{{cfg.contact_email}}"
 }
-/*
-var config ={
-	debug:"false",
-	cookieName:"acr_U0PEQ0MCYE",
-	qualificationCookieName:"qul_JOG6M4R5U7",
-	qualificationValidFor:43200,
-	internet_speed_Mbps:10,
-	allowedMaxHITsInProject:2,
-	forceRetrainingInHours:1,
-    showSetupEveryMinutes:30,
-    // could be 9 or 5
-    scale_points: 5,
-    // qualification
-	min_screen_refresh_rate: 3,
-	min_resolution:{w: 192, h:108},
-	// tablets will be included in PC, values:PC,MOBILE
-	device_accepted_device:["PC"],
-	viewing_distance:{
-		'img_path':'https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/distance/img3_{0}.jpg',
-		'base_id': '0',
-		'too_close':'3',
-		'normal':'5',
-		'too_far':'7'
-	},
-	block_matrix:{
-		'img': 'https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/block_matrix/m5/Yzo1X3Q6NA==.jpg',
-		'circles': 7,
-		'triangles': 7,
-		'dummy':'dummy',
-		'max_tries': 4
-	},
 
-	plates:{
-		"plate3":29,
-		"plate4":5
-	},
-	ratingQuestions: 10,
-	questionUrls: ['https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/speak/sidebyside/LS_Dharma_Take_15_speak_cropped_merged_src.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/speak/sidebyside/LS_Ross_Take_18_speak_cropped_merged_src.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/speak/sidebyside/LS_Xavier_Take_12_speak_cropped_merged_src.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/expression/sidebyside/LS_Vishak_Take_8_emote_cropped_merged_src_noaudio.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/expression/sidebyside/LS_Xavier_Take_11_emote_cropped_merged_src_noaudio.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/trap/11_08_2023/speak/sidebyside/LS_Dharma_Take_15_speak_cropped_merged_src_4.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/gold/11_08_2023/g5/expressions/sidebyside/LS_Dharma_Take_14_emote_livelink_noaudio_merged.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D'],
-    trainingUrls: ['https://teleportvideo.blob.core.windows.net/subjective-runs/training/sidebyside/LS_Cooper_Take_9_speak_cropped_merged_src.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/training/sidebyside/LS_Jesse_Take_14_emote_cropped_merged_src_noaudio.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/training/sidebyside/Meeting%20with%20Ashkan-20231110-Meeting%20Recording_mrged.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/trap/11_08_2023/expression/sidebyside/LS_Dharma_Take_14_emote_cropped_merged_src_noaudio_1.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D'],
-    knownQuestionInTrainingUrl:"https://teleportvideo.blob.core.windows.net/subjective-runs/trap/11_08_2023/expression/sidebyside/LS_Dharma_Take_14_emote_cropped_merged_src_noaudio_1.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D",
-    knownQuestionInTrainingAns: "1",
-
-    knownQuestionUrl:"https://teleportvideo.blob.core.windows.net/subjective-runs/trap/11_08_2023/speak/sidebyside/LS_Dharma_Take_15_speak_cropped_merged_src_4.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D",
-    knownQuestionAns: "4",
-    randomizeTrainingQuestions:"true",
-    randomizeRatingQuestions:"true",
-    emailAddress: "ic3ai@outlook.com"
-}*/
 //---- for video player
 max_accepted_extra_playing_time_sec = 2.5;
 const videos_not_loaded_yet_set = new Set()
@@ -448,7 +401,7 @@ function range(size, startAt = 1) {
 const Hide_HIT_REASON = Object.freeze({"MAX_ACHIVED":1, "QUALIFICATON":2, "QUALIFICATION_FAILED_NOW":3, "AUTO_TEST_FAILED":4})
 
 /*
-	Initializing the page: generate and hide sections depending to the cookies value
+	Initializing the page: generate and hide sections depending on the cookies value
 */
 $(function() {
 	try{
@@ -468,17 +421,11 @@ $(function() {
 		initializeSetup();
 
 		loadTextPlaceHolders();
-        // load the order
-        let order = readCookie(config['cookieName']+'_telep_order');
-        console.log(order);
-        if (order == null){
-            r = range(config['ratingQuestions']);
-            r = range(config['ratingQuestions']);
-            r = shuffle(r);
-            order = r.join('_'); 
-            createCookie(config['cookieName']+'_telep_order', order, config['forceRetrainingInHours']*60);
-        }
-        $("#telep_order").val(order);
+        // set the rating question order
+		r = range(config['numberOfRatingQuestions']);
+		r = shuffle(r);
+		order = r.join('_');
+        $("#rating_question_order").val(order);
 
 		generate_training_section();
 		generate_rating_section();
@@ -572,7 +519,7 @@ var loading_page_error = false;
 var first_time_hardware_failed = false;
 /*
 	Disable the HIT and show a proper message.
-	Depending to the reason show a proper message as well.
+	Depending on the reason show a proper message as well.
 */
 function disableTheHIT(c){
 	loading_page_error = true;
@@ -1798,19 +1745,8 @@ function getTelepScale(order, is_training){
 
     answers = [[5,'Strongly agree'], [4,'Agree'], [3,'Neutral'], [2,'Disagree'], [1,'Strongly disagree']];
 
-    var s_trust = getRatingSection(p,'trust', 'I would trust a person using this avatar', answers);
-    var s_realistic = getRatingSection(p, 'realistic', 'This avatar is realistic', answers);
-    var s_comfortableusing = getRatingSection(p, 'comfortableusing', 'I would be comfortable using this avatar for work', answers);
-    var s_comfortableinteracting =getRatingSection(p, 'comfortableinteracting', 'I would be comfortable interacting with this avatar for work', answers);
-    var s_appropriate =getRatingSection(p, 'appropriate', 'The avatar is appropriate for work', answers);
-    var s_creepy =getRatingSection(p, 'creepy', 'The avatar is creepy', answers);
-    var s_formal =getRatingSection(p, 'formal', 'The avatar looks formal (not cartoonish)', answers);
-    var s_lookslike =getRatingSection(p, 'lookslike', 'The avatar (left) looks like the person (right)', answers);
-    var s_facialexpressions =getRatingSection(p, 'facialexpressions', 'The avatar’s facial expressions (left) are accurate with the video (right)', answers);
-	
-	let tp = get_a_tp();
-	var s_tp =getRatingSection(p, tp['id'], tp['text'], answers);
 
+	let tp = get_a_tp();
 	list ={
 			'1': {'id': 'trust', 'text': 'I would trust a person using this avatar'},
 			'2': {'id': 'realistic', 'text': 'This avatar is realistic'},
@@ -1819,18 +1755,13 @@ function getTelepScale(order, is_training){
 			'5': {'id': 'appropriate', 'text': 'The avatar is appropriate for work'},
 			'6': {'id': 'creepy', 'text': 'The avatar is creepy'},
 			'7': {'id': 'formal', 'text': 'The avatar looks formal (not cartoonish)'},
-			'8': tp,
-			'9': {'id': 'lookslike', 'text': 'The avatar (left) looks like the person (right)'},
-			'10': {'id': 'facialexpressions', 'text': 'The avatar’s facial expressions (left) are accurate with the video (right)'},
+			'8': tp
 	}
-	
-	
+
     var html = overhead;
-    
-	
 	tmp_list = order.split("_");
 
-	// select one of the first three items ranomly and repeat it somewhen between the last 4 items
+	// select one of the first three items randomly and repeat it somewhere between the last 4 items
 	var first_three_q =[]
 	let insert_after = tmp_list.length - Math.floor(Math.random() * 4);
 
@@ -1846,6 +1777,7 @@ function getTelepScale(order, is_training){
 			// randomly select one item from first_three_q
 			let r_item = first_three_q[Math.floor(Math.random() * first_three_q.length)];			
 			repeated_item = getRatingSection(p,r_item['id']+'_R', r_item['text'], answers);
+			// _i need to be corrected
 			repeated_item = repeated_item.replace("_elmt_X", "_elmt_" + i);
 			html = html + repeated_item;
 		}
@@ -1855,7 +1787,6 @@ function getTelepScale(order, is_training){
         html = html.replaceAll("t{0}", "q{0}").replaceAll("trainingFieldset", "ratingFieldset").replaceAll("T{0}", "Q{0}").replaceAll("playedAudioTraining", "playedAudioQ");
     }
     return html;
-
 }
 
 function getACRScale(type, is_training){
@@ -1881,7 +1812,6 @@ function getACRScale(type, is_training){
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label></div></td><td class="c">2</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="1"required="">Bad</label></div></td><td class="c">1</td></tr>';
 
-
 	if (type== 5){
 		return template5;
 	}
@@ -1889,7 +1819,6 @@ function getACRScale(type, is_training){
 		return template9;
 	}
 	return '';
-
 }
 
 /*
@@ -1907,12 +1836,8 @@ function generate_training_section(){
 	getACRScale(config['scale_points'], true)+
 	'</tbody></table></fieldset><p></p></div> <div class="col-sm-4"></div></div> </div>';
     */
-    // set the order of scale
-	//order = $("#telep_order").val();
-	//change the order per questions
-	r = range(config['ratingQuestions']);
-	r = shuffle(r);
-	order = r.join('_'); 
+    // load the order
+	order = $("#rating_question_order").val();
 
     var dcr_tab = getTelepScale(order, true);
 	// this will show which url was shown by in which question as their orther will be randomized
@@ -1954,11 +1879,7 @@ function generate_rating_section(){
 	'</tbody></table></fieldset><p></p></div> <div class="col-sm-4"></div></div> </div>';
     */
     // set the order of scale
-	//order = $("#telep_order").val();
-	//change the order per questions
-	r = range(config['ratingQuestions']);
-	r = shuffle(r);
-	order = r.join('_');
+	order = $("#rating_question_order").val();
 
     var dcr_tab = getTelepScale(order, false);
 
@@ -2363,7 +2284,6 @@ function get_expected_duration(id, is_from_play){
 	return duration;
 }
 
-
 function end_video(id, is_first_video){
     //console.log("end_video video {0}, time{1}".f(id, (new Date()).toISOString()));
 	$("#velmnt_s_"+id).removeClass("glyphicon-pause");
@@ -2537,7 +2457,6 @@ function load_videos_to_storage(video_id){
 	req.send();
 }
 
-
 /**
 	Add the necessary listeners to a newly created video element
 **/
@@ -2605,7 +2524,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 <input id="video_loading_duration" name="video_loading_duration_ms" type="hidden" value="" />
 <input id="internet_speed_estimate" name="internet_speed_estimate_Mb" type="hidden" value="" />
 
-<input id="telep_order" name="telep_order" type="hidden" value="bak_sig" />
+<input id="rating_question_order" name="rating_question_order" type="hidden" value="" />
 
 <!-- just for backup -->
 <input id="matrix_t1_circle_history" name="matrix_t1_circle_history" type="hidden" value="" />
@@ -3043,29 +2962,27 @@ function avoidAnsweringBeforeWatchingThrough(){
     <div class="panel-collapse collapse in" id="instructionImp">
       <div class="panel-body">
         <p>Almost ready to start. </p>
-        <p>Thank you for participating in this subjective study aimed at assessing trustworthiness and realism of avatars. Your feedback will help us understand how users perceive and interact with avatars. Please provide honest and thoughtful responses to the following questions.: </p>
+        <p>Thank you for participating in this subjective study aimed at assessing the trustworthiness and realism of avatars in online meetings. Your feedback will help us understand how users perceive and interact with avatars. Please provide honest and thoughtful responses to the following questions:</p>
         <ul>
-          <li> Type 1 questions: You are given a video of avatar and asked a question about trustworthiness, realism, and being comfortable using/interacting with the avatar in online meetings. You task is to rate the question in the scale 1 to 5.</li>
-			<ul>
-            <li>5. Strongly agree</li>
-            <li>4. Agree</li>
-            <li>3. Neither agree nor disagree</li>
-            <li>2. Disagree</li>
-            <li>1. Strongly disagree</li>
-          </ul>
-          <li> Type 2 questions: You are given a side by side real video or a person and it's avatar version, and your task is to compare the expression of the avatar to that of the real video and rate this comparison in the sale of 1 to 5.</li>
-          <ul>
-            <li>5. Extremely accurate</li>
-            <li>4. Very accurate</li>
-            <li>2. Slightly accurate</li>
-            <li>2. Disagree</li>
-            <li>1. Not at all accurate</li>
-          </ul>
-        </ul>
-        <b>Important notes:</b>
-        <ul>
-          <li> .</li>
-        </ul>
+			<li> Single Video: You are given a video of avatar and asked a question about trustworthiness, realism, and being comfortable using/interacting with the avatar in online meetings. Your task is to rate the question in the scale 1 to 5.
+				<ul>
+					<li>5. Strongly agree</li>
+            		<li>4. Agree</li>
+            		<li>3. Neither agree nor disagree</li>
+            		<li>2. Disagree</li>
+            		<li>1. Strongly disagree</li>
+          		</ul>
+			</li>
+          	<li> Side by Side: You are given a side by side real video or a person and its avatar version, and your task is to compare the expression of the avatar to that of the real video and rate this comparison in the scale of 1 to 5.
+				<ul>
+					<li>5. Strongly agree</li>
+            		<li>4. Agree</li>
+            		<li>3. Neither agree nor disagree</li>
+            		<li>2. Disagree</li>
+            		<li>1. Strongly disagree</li>
+          		</ul>
+			</li>
+		</ul>
       </div>
     </div>
   </div>
@@ -3073,7 +2990,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 
 
 <!-- Training section, appears once a day-->
-<section class="container" id="training">
+<section class="container disabled_section" id="training">
 		<div class="panel panel-primary">
 			<div class="panel-heading">
 				<h3 class="panel-title">
