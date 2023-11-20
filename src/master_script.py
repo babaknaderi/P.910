@@ -596,7 +596,7 @@ if __name__ == '__main__':
     parser.add_argument("--project", help="Name of the project", required=True)
     parser.add_argument("--cfg", help="Configuration file, see master.cfg", required=True)
     parser.add_argument("--method", required=True,
-                        help="one of the test methods: 'acr', 'acr-hr', 'dcr', 'ccr'")
+                        help="one of the test methods: 'acr', 'acr-hr', 'dcr', 'ccr', 'tlp'")
     parser.add_argument("--clips", help="A csv containing urls of all clips to be rated in column 'pvs', in "
                                         "case of DCR it should also contain a column for 'src'")
     parser.add_argument("--gold_clips", help="A csv containing urls of all gold clips in column 'gold_clips_pvs' and "
