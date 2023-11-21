@@ -1711,10 +1711,10 @@ function getRatingSection(questionType, questionName, question, answers){
 
 function get_a_tp(){
 	tps = [
-		{'id':'tp1', 'text': 'I am less than five years old.'},
-		{'id':'tp2', 'text': 'I cannot read text in English.'},
-		//{'id':'tp3', 'text': 'I am older than five years old.'},
-		//{'id':'tp4', 'text': 'I can read text in English.'},
+		{'id':'lessthan5', 'text': 'I am less than five years old'},
+		{'id':'cantreadenglish', 'text': 'I cannot read text in English'},
+		//{'id':'olderthan5', 'text': 'I am older than five years old'},
+		//{'id':'canreadenglish', 'text': 'I can read text in English'},
 	];
 	// select a random items from tps and retun it
 	return tps[Math.floor(Math.random() * tps.length)];
@@ -1734,11 +1734,11 @@ function getTelepScale(order, is_training){
 	//'<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+'<fieldset id="fieldset_Q{0}" class="trainingFieldset" title="">'+
 	'<div class="row"> <div class="col-sm-2"></div>	<div class="col-sm-8"> <fieldset id="fieldset_'+p+'{0}" class="trainingFieldset" title="">'+
 	'<table class="table questionnaire">  <thead>   <tr>  <th scope="col" style="width: 50%;">Statement</th>'+
-	'<th scope="col" class="text-center" style="width: 10%;">Strongly agree</br>(++)</th> '+
-	'<th scope="col" class="text-center"  style="width: 10%;">Agree</br>(+)</th> '+
-	'<th scope="col" class="text-center"  style="width: 10%;">Neutral</br>(O)</th> '+
-	'<th scope="col" class="text-center"  style="width: 10%;">Disagree</br>(-)</th> '+
-	'<th scope="col" class="text-center"  style="width: 10%;">Strongly disagree</br>(--)</th> '+
+	'<th scope="col" class="text-center" style="width: 10%;">Strongly agree</br>(5)</th> '+
+	'<th scope="col" class="text-center"  style="width: 10%;">Agree</br>(4)</th> '+
+	'<th scope="col" class="text-center"  style="width: 10%;">Neutral</br>(3)</th> '+
+	'<th scope="col" class="text-center"  style="width: 10%;">Disagree</br>(2)</th> '+
+	'<th scope="col" class="text-center"  style="width: 10%;">Strongly disagree</br>(1)</th> '+
 	'</tr>  </thead>  <tbody>'; 
 	
 	var postfix = ' </tbody> </table> </fieldset> </div> <div class="col-sm-2"></div> </div>';
@@ -1763,7 +1763,7 @@ function getTelepScale(order, is_training){
 
 	// select one of the first three items randomly and repeat it somewhere between the last 4 items
 	var first_three_q =[]
-	let insert_after = tmp_list.length - Math.floor(Math.random() * 4);
+	let insert_after = tmp_list.length - Math.floor(Math.random() * 3)-1;
 
     for (i=0; i<tmp_list.length; i++){
         tmp = list[tmp_list[i]];
@@ -1771,7 +1771,7 @@ function getTelepScale(order, is_training){
 			first_three_q.push(tmp);
 		}
 		tmp = getRatingSection(p, tmp['id'], tmp['text'], answers);
-        tmp = tmp.replace("_elmt_X", "_elmt_" + i);		
+        tmp = tmp.replace("_elmt_X", "_elmt_" + i);
         html = html + tmp;
 		if (i==insert_after){
 			// randomly select one item from first_three_q
@@ -1825,28 +1825,19 @@ function getACRScale(type, is_training){
 	Generate the training section
 */
 function generate_training_section(){
-	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#T{0}-panel" id="T{0}-tab " role="tab" aria-controls="T{0}" {2}>Q. {0}</a></li>';
-    /*
-	dcr_tab ='<div class="tab-pane fade {2}" id="T{0}-panel" role="tabpanel" aria-labelledby="T{0}-tab"><p></p>'+
-	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
-	'<p style="margin-top:10px;">{0}. How do you rate the quality of the following video clip? </p> <div class="row"> <p align="center">'+
-	'<span class="velmnt" id="t{0}" data-src-clip="{1}" data-onfinished="playedVideoTraining" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>'+
-	'<div class="row">	<div class="col-sm-4"></div>	<div class="col-sm-4">'+
-	'<fieldset id="fieldset_t{0}" class="trainingFieldset" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The quality is</th><th class="c" >Score</th></tr></thead><tbody>'+
-	getACRScale(config['scale_points'], true)+
-	'</tbody></table></fieldset><p></p></div> <div class="col-sm-4"></div></div> </div>';
-    */
+	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#t{0}-panel" id="t{0}-tab " role="tab" aria-controls="t{0}" {2}>Q. {0}</a></li>';
+
     // load the order
 	order = $("#rating_question_order").val();
 
     var dcr_tab = getTelepScale(order, true);
-	// this will show which url was shown by in which question as their orther will be randomized
+
+	// this will show which url was shown by in which question as their order will be randomized
 	input_template= '<input id="T{0}_URL" name="T{0}_URL" type="hidden" value="{1}" />';
 
+	urls = config['trainingUrls'];
     if (JSON.parse(config['randomizeTrainingQuestions']))
-		urls = shuffle(config['trainingUrls']);
-	else
-		urls = config['trainingUrls'];
+		urls = shuffle(urls);
 
 	var i;
 	for (i = 0; i < urls.length; i++) {
@@ -1867,23 +1858,14 @@ function generate_training_section(){
 	Generate rating section
 */
 function generate_rating_section(){
-	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#Q{0}-panel" id="Q{0}-tab " role="tab" aria-controls="Q{0}" {2}>Q. {0}</a></li>';
-	/*
-    dcr_tab ='<div class="tab-pane fade {2}" id="Q{0}-panel" role="tabpanel" aria-labelledby="Q{0}-tab"><p></p>'+
-	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
-	'<p style="margin-top:10px;">{0}. How do you rate the quality of the following video clip?? </p> <div class="row"> <p align="center">'+
-	'<span class="velmnt" id="Q{0}" data-src-clip="{1}" data-onfinished="playedVideoQ" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>'+
-	'<div class="row">	<div class="col-sm-4"></div>	<div class="col-sm-4">'+
-	'<fieldset id="fieldset_Q{0}" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The quality is</th><th class="c" >Score</th></tr></thead><tbody>'+
-	getACRScale(config['scale_points'], false)+
-	'</tbody></table></fieldset><p></p></div> <div class="col-sm-4"></div></div> </div>';
-    */
+	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#q{0}-panel" id="q{0}-tab " role="tab" aria-controls="q{0}" {2}>Q. {0}</a></li>';
+
     // set the order of scale
 	order = $("#rating_question_order").val();
 
     var dcr_tab = getTelepScale(order, false);
 
-	// this will show which url was shown by in which question as their orther will be randomized
+	// this will show which url was shown by in which question as their order will be randomized
 	input_template= '<input id="Q{0}_URL" name="Q{0}_URL" type="hidden" value="{1}" />';
 
 	if (JSON.parse(config['randomizeRatingQuestions']))
@@ -2492,7 +2474,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 	var i;
 	// Training section
 	for (i = 0; i < config['trainingUrls'].length; i++) {
-		$('input[name^="t{0}"]'.f(i+1)).on('change', alertForbiddenChange);
+		$('input[name^="t{0}"]:not([name^="t{0}_circles"]):not([name^="t{0}_triangles"])'.f(i+1)).on('change', alertForbiddenChange);
 	}
 	// Rating section
 	for (i = 0; i < config['questionUrls'].length; i++) {
@@ -2962,7 +2944,7 @@ function avoidAnsweringBeforeWatchingThrough(){
     <div class="panel-collapse collapse in" id="instructionImp">
       <div class="panel-body">
         <p>Almost ready to start. </p>
-        <p>Thank you for participating in this subjective study aimed at assessing the trustworthiness and realism of avatars in online meetings. Your feedback will help us understand how users perceive and interact with avatars. Please provide honest and thoughtful responses to the following questions:</p>
+        <p>Thank you for participating in this subjective study aimed at assessing the trustworthiness and realism of avatars in online meetings. Your feedback will help us understand how users perceive and interact with avatars. Please provide honest and thoughtful responses to the following question:</p>
         <ul>
 			<li> Single Video: You are given a video of avatar and asked a question about trustworthiness, realism, and being comfortable using/interacting with the avatar in online meetings. Your task is to rate the question in the scale 1 to 5.
 				<ul>
@@ -2973,15 +2955,15 @@ function avoidAnsweringBeforeWatchingThrough(){
             		<li>1. Strongly disagree</li>
           		</ul>
 			</li>
-          	<li> Side by Side: You are given a side by side real video or a person and its avatar version, and your task is to compare the expression of the avatar to that of the real video and rate this comparison in the scale of 1 to 5.
-				<ul>
-					<li>5. Strongly agree</li>
-            		<li>4. Agree</li>
-            		<li>3. Neither agree nor disagree</li>
-            		<li>2. Disagree</li>
-            		<li>1. Strongly disagree</li>
-          		</ul>
-			</li>
+<!--          	<li> Side by Side: You are given a side by side real video or a person and its avatar version, and your task is to compare the expression of the avatar to that of the real video and rate this comparison in the scale of 1 to 5.-->
+<!--				<ul>-->
+<!--					<li>5. Strongly agree</li>-->
+<!--            		<li>4. Agree</li>-->
+<!--            		<li>3. Neither agree nor disagree</li>-->
+<!--            		<li>2. Disagree</li>-->
+<!--            		<li>1. Strongly disagree</li>-->
+<!--          		</ul>-->
+<!--			</li>-->
 		</ul>
       </div>
     </div>
