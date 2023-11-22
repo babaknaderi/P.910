@@ -37,10 +37,10 @@ def create_csv(csv_filename, keyword, relative_path, is_trap=False, is_golden=Fa
                     scale_p835_writer.writerow([file])
 
 
-# csv_filename = r'C:\github\P.910\Teleport\configs\tlp_rating_clips_a.csv'
-# keyword = 'standalone'
-# relative_path = 'evaluations/11_08_2023/'
-# create_csv(csv_filename, keyword, relative_path)
+csv_filename = r'C:\github\P.910\Teleport_1\configs\tlp_rating_clips_a.csv'
+keyword = 'standalone'
+relative_path = 'evaluations/11_20_2023/'
+create_csv(csv_filename, keyword, relative_path)
 #
 # csv_filename = r'C:\github\P.910\Teleport\configs\tlp_rating_clips_b.csv'
 # keyword = 'sidebyside'
@@ -60,12 +60,12 @@ def create_csv(csv_filename, keyword, relative_path, is_trap=False, is_golden=Fa
 # create_csv(csv_filename, keyword, relative_path, is_trap=True)
 
 
-csv_filename = r'C:\github\P.910\Teleport\configs\tlp_gold_clips_b_1.csv'
-keyword = 'sidebyside'
-relative_path = 'gold/11_08_2023/g1'
-create_csv(csv_filename, keyword, relative_path, is_golden=True, gold_value=1)
-
-csv_filename = r'C:\github\P.910\Teleport\configs\tlp_rating_clips_b_5.csv'
-keyword = 'sidebyside'
-relative_path = 'gold/11_08_2023/g5'
-create_csv(csv_filename, keyword, relative_path, is_golden=True, gold_value=5)
+# csv_filename = r'C:\github\P.910\Teleport\configs\tlp_gold_clips_b_1.csv'
+# keyword = 'sidebyside'
+# relative_path = 'gold/11_08_2023/g1'
+# create_csv(csv_filename, keyword, relative_path, is_golden=True, gold_value=1)
+#
+# csv_filename = r'C:\github\P.910\Teleport\configs\tlp_rating_clips_b_5.csv'
+# keyword = 'sidebyside'
+# relative_path = 'gold/11_08_2023/g5'
+# create_csv(csv_filename, keyword, relative_path, is_golden=True, gold_value=5)
