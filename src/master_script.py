@@ -18,7 +18,7 @@ from jinja2 import Template
 
 import create_input as ca
 from azure_clip_storage import AzureClipStorage, TrappingSamplesInStore, GoldSamplesInStore
-
+import math
 
 def create_analyzer_cfg(cfg, template_path, out_path, n_HITs):
     """
@@ -246,6 +246,7 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
     config['accepted_device'] = viewing_condition_cfg[
         'accepted_device'] if 'accepted_device' in viewing_condition_cfg else '["PC"]'
     config['scale_points'] = hit_app_html_cfg['scale'] if 'scale' in hit_app_html_cfg else 5
+    config['video_player'] = hit_app_html_cfg['video_player']
 
     config = {**config, **general_cfg}
 
@@ -288,11 +289,32 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
     config['training_trap_ans'] = trap_ans
 
     # training urls
-    df_train = pd.read_csv(training_path)
     train_urls = []
-    for _, row in df_train.iterrows():
-        train_urls.append(row['training_pvs'])
-    train_urls.append(trap_url)
+    if not args.training_gold_clips:
+        df_train = pd.read_csv(training_path)
+        train_urls = []
+        for _, row in df_train.iterrows():
+            train_urls.append(row['training_pvs'])
+        train_urls.append(trap_url)
+
+    if args.training_gold_clips:        
+        df_train = pd.read_csv(args.training_gold_clips)
+        gold_in_train = []        
+        cols = ['trust_ans','realistic_ans','comfortableusing_ans', 'comfortableinteracting_ans', 'appropriate_ans', 'creepy_ans', 'formal_ans' ]
+
+        for _, row in df_train.iterrows():
+            train_urls.append(row["training_pvs"])
+            data = {
+                'url': row["training_pvs"],
+            }
+            for col in cols:
+                if not math.isnan(row[col]):
+                    #coded_ans = get_encoded_gold_ans(row["training_clips"], row[col])                    
+                    prfx = col.split('_')[0]
+                    data[prfx] = {'ans': str(int(row[col])),'msg': row[f"{prfx}_msg"],'var': round(row[f"{prfx}_var"])}
+            gold_in_train.append(data.copy())
+        config["training_gold_clips"] = gold_in_train
+
 
     config['training_urls'] = train_urls
 
@@ -607,9 +629,12 @@ if __name__ == '__main__':
                                              "is needed")
     parser.add_argument("--training_clips", help="A csv containing urls of all training clips to be rated in training "
                                                  "section. Columns 'training_pvs' and 'training_src' in case of DCR",
-                        required=True)
+                        required=False)
     parser.add_argument("--trapping_clips", help="A csv containing urls of all trapping clips. Columns 'trapping_pvc'"
                                                  "and 'trapping_ans'. In case of DCR also 'trapping_src'")
+    parser.add_argument(
+        "--training_gold_clips", default=None,  help="A csv containing urls and details of gold training questions ",     required=False)
+    
     # check input arguments
     args = parser.parse_args()
 
@@ -617,7 +642,14 @@ if __name__ == '__main__':
     test_method = args.method.lower()
     assert test_method in methods, f"No such a method supported, please select between {methods}"
     assert os.path.exists(args.cfg), f"No config file in {args.cfg}"
-    assert os.path.exists(args.training_clips), f"No csv file containing training clips in {args.training_clips}"
+
+    if args.training_clips:
+        assert os.path.exists(args.training_clips), f"No csv file containing training clips in {args.training_clips}"
+    elif args.training_gold_clips:
+        assert os.path.exists(args.training_gold_clips), f"No csv file containing training_gold_clips in {args.training_gold_clips}"
+    else:
+        raise ValueError("No training or training_gold clips provided")
+
 
     cfg = CP.ConfigParser()
     cfg._interpolation = CP.ExtendedInterpolation()
