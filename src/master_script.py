@@ -214,6 +214,9 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
     config = dict()
     config['debug'] = hit_app_html_cfg['debug'] if 'debug' in hit_app_html_cfg else 'false'
     config['number_of_rating_questions'] = hit_app_html_cfg['number_of_rating_questions']
+    config['rating_questions'] = hit_app_html_cfg['rating_questions']
+    config['rating_answers'] = hit_app_html_cfg['rating_answers']
+
     config['cookie_name'] = hit_app_html_cfg['cookie_name'] if 'cookie_name' in hit_app_html_cfg else \
         f'acr_{get_rand_id()}'
     config['qual_cookie_name'] = hit_app_html_cfg['qual_cookie_name'] if 'qual_cookie_name' in hit_app_html_cfg else \

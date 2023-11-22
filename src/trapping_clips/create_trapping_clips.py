@@ -7,9 +7,11 @@
 """
 
 import argparse
-from os.path import isfile, join, basename
 import configparser as CP
 import csv
+import json
+from os.path import isfile, join, basename
+
 import cv2
 from PIL import Image, ImageFont, ImageDraw
 from moviepy.editor import *
@@ -34,7 +36,7 @@ def create_msg_video(cfg, des, org):
 
     vid.release()
     list_videos = []
-    for score in range(int(cfg['scale_min']), int(cfg['scale_max'])+1):
+    for score in range(int(cfg['scale_min']), int(cfg['scale_max']) + 1):
         video_name = join(des, f'video_{width}_{height}_{score}.mp4')
         # check if a trapping video is already created
         if video_name in trapping_videos:
@@ -69,14 +71,19 @@ def create_msg_img(cfg, score, des, v_width, v_height):
     """
     title = "Attention:"
     # find a proper font size
-    expected_text_width = v_width*0.8
+    expected_text_width = v_width * 0.8
     percentage = 0
     font_size = 15
-    text = ''
-    if len(cfg['message_line1']) > len(cfg['message_line2']):
-        text = cfg['message_line1']
+
+    score_text = score
+    if 'rating_answers' in cfg:
+        score_text = json.loads(cfg['rating_answers'])[str(score)]
+
+    if len(cfg['message_line1'].format(score_text)) > len(cfg['message_line2'].format(score_text)):
+        text = cfg['message_line1'].format(score_text)
     else:
-        text = cfg['message_line2']
+        text = cfg['message_line2'].format(score_text)
+
     while percentage < 0.95 or percentage > 1.05:
         if percentage < 0.95:
             font_size += 5
@@ -94,15 +101,15 @@ def create_msg_img(cfg, score, des, v_width, v_height):
     text = title
     text_width = font.getsize(text)[0]
     text_height = font.getsize(text)[1]
-    d.text(xy=((v_width-text_width)/2, v_height/2-3*text_height), text=text, font=font, fill=(255, 255, 255))
+    d.text(xy=((v_width - text_width) / 2, v_height / 2 - 3 * text_height), text=text, font=font, fill=(255, 255, 255))
 
-    text = cfg['message_line1'].format(score)
+    text = cfg['message_line1'].format(score_text)
     text_width = font.getsize(text)[0]
     d.text(xy=((v_width - text_width) / 2, v_height / 2 - text_height), text=text, font=font, fill=(255, 255, 255))
 
-    text = cfg['message_line2'].format(score)
+    text = cfg['message_line2'].format(score_text)
     text_width = font.getsize(text)[0]
-    d.text(xy=((v_width - text_width) / 2, v_height / 2 + text_height/2), text=text, font=font, fill=(255, 255, 255))
+    d.text(xy=((v_width - text_width) / 2, v_height / 2 + text_height / 2), text=text, font=font, fill=(255, 255, 255))
     image_path = join(des, f'tmp_{v_width}_{v_height}_{score}.png')
     img.save(image_path)
     tmp_files.append(image_path)
@@ -137,7 +144,7 @@ def create_trap_db(cfg, source_folder, des):
                                  output_path, cfg)
             count += 1
             list_of_file.append({'trapping_pvs': output_f_name, 'trapping_ans': score})
-    output_report = join(des, 'output_report.csv')
+    output_report = join(des, 'tlp_trapping_clips_a.csv')
     with open(output_report, 'w', newline='') as output_file:
         headers_written = False
         for f in list_of_file:
@@ -171,14 +178,14 @@ def create_trap_stimulus(source, message, output, cfg):
             (cfg['keep_original_duration'].upper() == 'TRUE'):
         msg_duration = msg_video.duration
         # if it negative, just use the default 3 seconds
-        prefix_duration = source_duration - msg_duration -post_fix_duration_sec
+        prefix_duration = source_duration - msg_duration - post_fix_duration_sec
         if prefix_duration < 3:
             prefix_duration = 3
         prefix_video = source_video.subclip(0, prefix_duration)
     else:
         prefix_video = source_video.subclip(0, min(int(cfg["include_from_source_stimuli_in_second"]), src_duration))
 
-    postfix_clip = source_video.subclip(source_duration-post_fix_duration_sec, source_duration)
+    postfix_clip = source_video.subclip(source_duration - post_fix_duration_sec, source_duration)
     final_clip = concatenate_videoclips([prefix_video, msg_video, postfix_clip])
     final_clip.write_videofile(output)
 
