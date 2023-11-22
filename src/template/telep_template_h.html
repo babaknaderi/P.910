@@ -1743,7 +1743,7 @@ function get_a_tp(){
 	return tps[Math.floor(Math.random() * tps.length)];
 }
 
-function getTelepScale(order, is_training){
+function getTelepScale(is_training){
 	let p ='q';
 	if (is_training){
          p = 't';
@@ -1768,7 +1768,6 @@ function getTelepScale(order, is_training){
 
     answers = [[5,'Strongly agree'], [4,'Agree'], [3,'Neutral'], [2,'Disagree'], [1,'Strongly disagree']];
 
-
 	let tp = get_a_tp();
 	postfix = postfix + '<input type="hidden" name="'+p+'{0}_tpid" value="'+tp['tp_id']+'">';
 	list ={
@@ -1782,8 +1781,12 @@ function getTelepScale(order, is_training){
 			'8': tp
 	}
 
-    var html = overhead;
+	r = range(config['numberOfRatingQuestions']);
+	r = shuffle(r);
+	order = r.join('_');
 	tmp_list = order.split("_");
+
+    var html = overhead;
 
 	// select one of the first three items randomly and repeat it somewhere between the last 4 items
 	var first_three_q =[]
@@ -1924,11 +1927,6 @@ function getACRScale(type, is_training){
 function generate_training_section(){
 	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#t{0}-panel" id="t{0}-tab " role="tab" aria-controls="t{0}" {2}>Q. {0}</a></li>';
 
-    // load the order
-	order = $("#rating_question_order").val();
-
-    var dcr_tab = getTelepScale(order, true);
-
 	// this will show which url was shown by in which question as their order will be randomized
 	input_template= '<input id="T{0}_URL" name="T{0}_URL" type="hidden" value="{1}" />';
 
@@ -1938,6 +1936,7 @@ function generate_training_section(){
 
 	var i;
 	for (i = 0; i < urls.length; i++) {
+	    var dcr_tab = getTelepScale(true);
 		if (i==0){
 			$('#trainingTabs').append(dcr_nav_tab.f(i+1,'active', 'ria-selected="true"'));
 			$('#nav-tabContent').append(dcr_tab.f(i+1, urls[i],'in active'));
@@ -1957,11 +1956,6 @@ function generate_training_section(){
 function generate_rating_section(){
 	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#q{0}-panel" id="q{0}-tab " role="tab" aria-controls="q{0}" {2}>Q. {0}</a></li>';
 
-    // set the order of scale
-	order = $("#rating_question_order").val();
-
-    var dcr_tab = getTelepScale(order, false);
-
 	// this will show which url was shown by in which question as their order will be randomized
 	input_template= '<input id="Q{0}_URL" name="Q{0}_URL" type="hidden" value="{1}" />';
 
@@ -1972,6 +1966,7 @@ function generate_rating_section(){
 
 	var i;
 	for (i = 0; i < urls.length; i++) {
+	    var dcr_tab = getTelepScale(false);
 		if (i==0){
 			$('#nav-tab-ul').append(dcr_nav_tab.f(i+1,'active', 'ria-selected="true"'));
 			$('#nav-tabContent-rating').append(dcr_tab.f(i+1, urls[i],'in active'));
