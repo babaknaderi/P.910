@@ -509,7 +509,12 @@ $(function() {
 				activate_setup_section(true);
 				activate_training_section(true);
 				activate_rating_section(true);
-			}
+		}
+		// make sure to pase all video playbacks when tab is switched
+		$('.nav-tabs a').on('shown.bs.tab', function(event){
+			console.log("tab changed");
+  			pauseAll();
+		});
 	}catch(err){
 		console.error(err);
 		recordError(err.name,err.message, true);
@@ -1433,6 +1438,7 @@ const VIEWING_DISTANCE = Object.freeze({"TOO_CLOSE":1, "TOO_FAR":3, "UNKNOWN": 4
 	Callback when "Next" in Training section is clicked.
 */
 function showNextQuestionInTrainingSection(){
+	pauseAll();
 	var count = $("#trainingTabs li").length;
 	id=$("#trainingTabs li.active").index();
 	if (id+1!=count){
@@ -1450,6 +1456,7 @@ function showNextQuestionInTrainingSection(){
 	Callback when "Previous" in Training section is clicked.
 */
 function showPreviousQuestionInTrainingSection(){
+	pauseAll();
 	id=$("#trainingTabs li.active").index();
 	id=id;
 	$('#trainingTabs li:nth-child('+id+') a').tab('show');
@@ -1567,6 +1574,7 @@ function playedVideoQ(id){
 	Callback when "Next" in Rating section is clicked.
 */
 function showNextQuestionInRatingSection(){
+	pauseAll();
 	var count = $("#nav-tab-ul li").length;
 	id=$("#nav-tab-ul li.active").index();
 	if (id+2==count){
@@ -1581,6 +1589,7 @@ function showNextQuestionInRatingSection(){
 	Callback when "Previous" in Rating section is clicked.
 */
 function showPreviousQuestionInRatingSection(){
+	pauseAll();
 	id=$("#nav-tab-ul li.active").index();
 	id=id;
 	$('#nav-tab-ul li:nth-child('+id+') a').tab('show');
@@ -1739,7 +1748,7 @@ function getTelepScale(order, is_training){
 	if (is_training){
          p = 't';
     }
-
+	
     var overhead = '<div class="tab-pane fade {2}" id="'+p+'{0}-panel" role="tabpanel" aria-labelledby="'+p+'{0}-tab"><p></p>'+
 	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
 	'<p style="margin-top:10px;">{0}. Watch the following video clip and specify how much you agree with each statement? </p> <div class="row"> <p align="center"> '+
@@ -2097,7 +2106,16 @@ function playVideo(video){
 	$("#velmnt_"+id).hide();
 
 	let parent = document.getElementById(id);
-	if (is_first_video){
+	//video_element.setAttribute("data-force_fullscreen", false);
+	// check if attribute data-force_fullscreen exist and is not false
+	var force_fullscreen = true
+	if (video.getAttribute("data-force_fullscreen") && video.getAttribute("data-force_fullscreen") == "false"){
+		console.log("data-force_fullscreen is false");
+		force_fullscreen = false;
+	}
+
+
+	if (is_first_video && force_fullscreen){
 		if (parent.requestFullscreen) {
 			parent.requestFullscreen();
 		  } else if (parent.msRequestFullscreen) {
@@ -2112,19 +2130,20 @@ function playVideo(video){
 	// set the listeners for when fullscreen is closed
 	previous_caller  =  tmp_caller_func;
 	tmp_caller_func = function (e){ fullscreen_closed(e,video, tmp_caller_func) };
-
-	if (parent.requestFullscreen) {
-		parent.removeEventListener("fullscreenchange",previous_caller);
-		parent.addEventListener("fullscreenchange",tmp_caller_func);
-	} else if (parent.msRequestFullscreen) {
-		parent.removeEventListener("onmsfullscreenchange",previous_caller);
-		parent.addEventListener("onmsfullscreenchange",tmp_caller_func);
-	} else if (parent.mozRequestFullScreen) {
-		parent.removeEventListener("mozfullscreenchange",previous_caller);
-		parent.addEventListener("mozfullscreenchange",tmp_caller_func);
-	} else if (parent.webkitRequestFullscreen) {
-		parent.removeEventListener("webkitfullscreenchange",previous_caller);
-		parent.addEventListener("webkitfullscreenchange",tmp_caller_func);
+	if (force_fullscreen){
+		if (parent.requestFullscreen) {
+			parent.removeEventListener("fullscreenchange",previous_caller);
+			parent.addEventListener("fullscreenchange",tmp_caller_func);
+		} else if (parent.msRequestFullscreen) {
+			parent.removeEventListener("onmsfullscreenchange",previous_caller);
+			parent.addEventListener("onmsfullscreenchange",tmp_caller_func);
+		} else if (parent.mozRequestFullScreen) {
+			parent.removeEventListener("mozfullscreenchange",previous_caller);
+			parent.addEventListener("mozfullscreenchange",tmp_caller_func);
+		} else if (parent.webkitRequestFullscreen) {
+			parent.removeEventListener("webkitfullscreenchange",previous_caller);
+			parent.addEventListener("webkitfullscreenchange",tmp_caller_func);
+		}
 	}
 
     if ($("#{0}".f(id)).hasClass('dcr')){
@@ -2191,12 +2210,19 @@ function playVideo_continue(id, video, is_dcr){
     video.setAttribute("oldwidth",oldW);
     video.setAttribute("oldheight",oldH);
 	let scale_type = "";
+
+	var force_fullscreen = true
+	if (video.getAttribute("data-force_fullscreen") && video.getAttribute("data-force_fullscreen") == "false"){
+		console.log("data-force_fullscreen is false");
+		force_fullscreen = false;
+	}
+
 	if ($('#{0}'.f(id)).attr('data-scale')){
 		scale_type = $('#{0}'.f(id)).attr('data-scale');
 	}else{
 		scale_type = "no-scale";
 	}
-	if (scale_type=="max-height"){
+	if (scale_type=="max-height" && force_fullscreen){
 		console.log('max-height');
 		$( "#"+video.id ).closest( "td" ).removeClass("vtd");
 		let fullscreen_width = screen.width * window.devicePixelRatio;
@@ -2220,7 +2246,7 @@ function playVideo_continue(id, video, is_dcr){
 		video.setAttribute("height",new_h);
 		console.log('video-attributes w:'+video.getAttribute("width") +', h:'+video.getAttribute("height"));
 	}else{
-		console.log('NOT max-height');
+		console.log('NOT max-height or '+force_fullscreen);
 	}
     video.play();
     if (video.id.indexOf('video1_')==0){
@@ -2379,7 +2405,14 @@ function end_video(id, is_first_video){
 	if ($("#"+id).attr('data-onfinished')){
 		window[$("#"+id).attr('data-onfinished')](id);
 	}
-	document.exitFullscreen();
+	var force_fullscreen = true
+	if (video_element.getAttribute("data-force_fullscreen") && video_element.getAttribute("data-force_fullscreen") == "false"){
+		console.log("data-force_fullscreen is false");
+		force_fullscreen = false;
+	}
+	if (force_fullscreen){
+		document.exitFullscreen();
+	}
 
 	$("#velmnt_l_c_"+id).css('color','green');
 	$("#velmnt_l_d_"+id).css('color','green');
@@ -2412,15 +2445,17 @@ function end_video(id, is_first_video){
 		}
 		// set attribute data-no-full
 		//playVideo(video_element);
-		//video_element.setAttribute("controls", true);
-		//video_element.setAttribute("loop", true);
+		video_element.setAttribute("controls", true);
+		video_element.setAttribute("loop", true);
+		video_element.setAttribute("data-force_fullscreen", false);
+		//video_element.muted= true;
 		//video_element.play();
 		// play the video with id video1_t1
 		//var x = document.getElementById("video1_t1");
 		// play the video in 2 seconds
-		//setTimeout(function(){ playVideo(x); }, 50);
+		setTimeout(function(){ playVideo(video_element); }, 50);
 		
-		console.log('video_element:::'+video_element);
+		//console.log('video_element:::'+video_element);
 	}
 	if (!is_first_video){
 		// it is a two video case and now it is a second video
