@@ -2178,6 +2178,11 @@ function playVideo_continue(id, video, is_dcr){
     	parent.classList.remove("bg");
 		$("#{0} .vcontainer".f(id)).show();
 	}
+	// check aspect ratio of video
+	let w = video.videoWidth;
+    let h = video.videoHeight;
+	let ratio = w/h;
+
     let oldH=video.getAttribute("height");
     let oldW=video.getAttribute("width");
     let fullW=screen.width;
@@ -2396,7 +2401,15 @@ function end_video(id, is_first_video){
 		// set object-fit for video_element to cover with withd and heigh = 100%
 		let parent = $('#video1_'+id).closest('span');		
 		console.log(parent);
-		parent.css("width", "100%");		
+		let w = video_element.videoWidth;
+    	let h = video_element.videoHeight;
+		if (video_element.videoWidth > video_element.videoHeight){
+			// landscape			
+			parent.css("width", "100%");		
+		}else{
+			// portrait
+			parent.css("width", "70%");		
+		}
 		// set attribute data-no-full
 		//playVideo(video_element);
 		//video_element.setAttribute("controls", true);
