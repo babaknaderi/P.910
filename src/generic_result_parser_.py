@@ -327,7 +327,6 @@ def get_question_row(row: dict, index, config):
     question_row['status'] = row['assignmentstatus']
     question_row['question_index'] = index
     question_row['question_type'] = 'rating'
-    #question_row['questions_order'] = row['answer.telep_order']
     question_row['v_code'] = row['v_code']
 
     if row['answer.cmp1'] is None or len(row['answer.cmp1'].strip()) == 0:
@@ -338,13 +337,13 @@ def get_question_row(row: dict, index, config):
         question_row['validation_correct_matrix'] = check_matrix(row, config)
 
     if row[f'answer.q{index}_url'].strip() == row['input.tp_clip'].strip():
-        question_row['question_type'] = 'trapping'
+        question_row['clip_type'] = 'trapping'
         question_row['expected_answer'] = row['input.tp_ans']
     elif row[f'answer.q{index}_url'].strip() == row['input.gold_clip'].strip():
-        question_row['question_type'] = 'gold'
+        question_row['clip_type'] = 'gold'
         question_row['expected_answer'] = row['input.gold_ans']
     else:
-        question_row['question_type'] = 'rating'
+        question_row['clip_type'] = 'rating'
         question_row['expected_answer'] = None
 
     rating_stats = ['answer.video_n_play_q{0}', 'answer.video_n_finish_q{0}', 'answer.video_play_duration_q{0}',
@@ -355,14 +354,30 @@ def get_question_row(row: dict, index, config):
     results = list()
 
     for key in row.keys():
-        if key.startswith(f'answer.q{index}') and 'url' not in key:
+        if key.startswith(f'answer.q{index}') and 'url' not in key and key.endswith('id') == False:
             temp_row = copy.deepcopy(question_row)
             temp_row['url'] = row[f'answer.q{index}_url']
             temp_row['question_answer'] = row[key]
-            temp_row['question_name'] = key.replace(f'answer.q{index}', '')
+            temp_row['question_name'], temp_row['question_type'] = get_question_name(index, key, row)
             results.append(temp_row)
 
     return results
+
+
+def get_question_name(index, key, row):
+    question_type = "regular"
+    if key.endswith('tp') or key.endswith('repeatingitem'):
+        if key.endswith('tp'):
+            question_type = "trapping"
+            name = row[f'answer.q{index}_tpid']
+        else:
+            name = row[f'answer.q{index}_repeatedid']
+            if name == "tp":
+                name = row[f'answer.q{index}_tpid']
+            question_type = "repeated"
+    else:
+        name = key.replace(f'answer.q{index}', '').strip('_')
+    return name, question_type
 
 
 def data_cleaning(filename, config):
@@ -1165,94 +1180,19 @@ def add_dmos_acrhr(agg_per_file_path, cfg):
     per_file.to_csv(agg_per_file_path, index=False)
 
 
-def analyze_results(config, test_method, answer_path, amt_ans_path, list_of_req, quality_bonus):
+def analyze_results(config, answer_path, amt_ans_path):
     """
     main method for calculating the results
     :param config:
-    :param test_method:
     :param answer_path:
-    :param list_of_req:
-    :param quality_bonus:
     :return:
     """
     global question_name_suffix
 
     assert amt_ans_path is not None, "amt_ans_path should be provided"
 
-    suffixes = ['']
-    wrong_v_code = None
-
     answer_path, wrong_v_code = combine_amt_hit_server(amt_ans_path, answer_path)
     data_cleaning(answer_path, config)
-
-    # n_workers, n_workers_used = number_of_unique_workers(full_data, accepted_sessions)
-    # print(f"{n_workers} workers participated in this batch, answers of {n_workers_used} are used.")
-    # # disabled becuase of the HITAPP_server
-    # calc_stats(answer_path)
-    # # votes_per_file, votes_per_condition = transform(accepted_sessions)
-    # if len(accepted_sessions) > 1:
-    #     condition_set = []
-    #     for suffix in suffixes:
-    #         question_name_suffix = suffix
-    #         print("Transforming data (the ones with 'accepted_and_use' ==1 --> group per clip")
-    #         use_condition_level = config.has_option('general', 'condition_pattern')
-    #
-    #         votes_per_file, vote_per_condition, data_per_worker = transform(test_method, accepted_sessions,
-    #                                                                         config.has_option('general',
-    #                                                                                           'condition_pattern'),
-    #                                                                         False)
-    #
-    #         votes_per_file_path = os.path.splitext(answer_path)[0] + f'_votes_per_clip{question_name_suffix}.csv'
-    #         votes_per_cond_path = os.path.splitext(answer_path)[0] + f'_votes_per_cond{question_name_suffix}.csv'
-    #
-    #         condition_keys = []
-    #         if config.has_option('general', 'condition_pattern'):
-    #             condition_keys = config['general']['condition_keys'].split(',')
-    #             votes_per_file = sorted(votes_per_file, key=lambda i: i[condition_keys[0]])
-    #             condition_keys.append('Unknown')
-    #         headers = create_headers_for_per_file_report(test_method, condition_keys)
-    #         write_dict_as_csv(votes_per_file, votes_per_file_path, headers=headers)
-    #         print(f'   Votes per files are saved in: {votes_per_file_path}')
-    #
-    #         if test_method in ['acr-hr']:
-    #             add_dmos_acrhr(votes_per_file_path, config)
-    #
-    #         if use_condition_level:
-    #             vote_per_condition = sorted(vote_per_condition, key=lambda i: i['condition_name'])
-    #             write_dict_as_csv(vote_per_condition, votes_per_cond_path)
-    #             print(f'   Votes per files are saved in: {votes_per_cond_path}')
-    #             condition_set.append(pd.DataFrame(vote_per_condition))
-    #         if create_per_worker:
-    #             write_dict_as_csv(data_per_worker,
-    #                               os.path.splitext(answer_path)[0] + f'_votes_per_worker{question_name_suffix}.csv')
-    #
-    #     bonus_file = os.path.splitext(answer_path)[0] + '_quantity_bonus_report.csv'
-    #     quantity_bonus_df = calc_quantity_bonuses(full_data, list_of_req, bonus_file)
-    #
-    #     if quality_bonus:
-    #         quality_bonus_path = os.path.splitext(answer_path)[0] + '_quality_bonus_report.csv'
-    #         if 'all' not in list_of_req:
-    #             quantity_bonus_df = calc_quantity_bonuses(full_data, ['all'], None)
-    #         if use_condition_level:
-    #             votes_to_use = vote_per_condition
-    #         else:
-    #             votes_to_use = votes_per_file
-    #         calc_quality_bonuses(quantity_bonus_df, accepted_sessions, votes_to_use, config, quality_bonus_path,
-    #                              n_workers, test_method, use_condition_level)
-    #
-    #     inter_rate_reliability, avg_irr = calc_inter_rater_reliability(accepted_sessions, votes_to_use, test_method,
-    #                                                                    use_condition_level)
-    #     irr_path = os.path.splitext(answer_path)[0] + '_irr_report.csv'
-    #     inter_rate_reliability.to_csv(irr_path, index=False)
-    #
-    #     if "min_inter_rater_reliability" in config['accept_and_use'] and \
-    #             avg_irr < float(config['accept_and_use']['min_inter_rater_reliability']):
-    #         text = f"Warning: Average Inter-rater reliability of this study {avg_irr:.3f} is below threshold. " \
-    #                f"It is highly possible that many unreliable ratings are included."
-    #     else:
-    #         text = f"Average Inter-rater reliability of study: {avg_irr:.3f}"
-    #
-    #     print(text)
 
 
 if __name__ == '__main__':
@@ -1308,7 +1248,4 @@ if __name__ == '__main__':
     np.seterr(divide='ignore', invalid='ignore')
     question_names = [f"q{i}" for i in range(1, int(config['general']['number_of_questions_in_rating']) + 1)]
     # start
-    if test_method != 'tlp':
-        analyze_results(config, test_method, answer_path, amt_ans_path, list_of_req, args.quality_bonus)
-    else:
-        analyze_results(config, test_method, answer_path, amt_ans_path, list_of_req, args.quality_bonus)
+    analyze_results(config, answer_path, amt_ans_path)
