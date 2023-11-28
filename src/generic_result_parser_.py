@@ -325,8 +325,8 @@ def get_question_row(row: dict, index, config):
     question_row['work_duration_sec'] = row['work_duration_sec']
     question_row['submit_time'] = row['submittime']
     question_row['status'] = row['assignmentstatus']
-    question_row['question_index'] = index
-    question_row['question_type'] = 'rating'
+    question_row['clip_index'] = index
+    question_row['question_type'] = ''
     question_row['v_code'] = row['v_code']
 
     if row['answer.cmp1'] is None or len(row['answer.cmp1'].strip()) == 0:
