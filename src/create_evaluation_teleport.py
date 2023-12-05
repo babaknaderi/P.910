@@ -54,7 +54,7 @@ def create_evaluation_folder(folder, input_csv, version, output_csv='tlp_rating_
     input_csv_path = os.path.join(folder, input_csv)
     subjective_client.get_blob_client(
         'evaluations/' + version + '/mturk/configs/' + input_csv).upload_blob(
-        open(input_csv_path, 'rb'))
+        open(input_csv_path, 'rb'), overwrite=overwrite)
     data = pd.read_csv(input_csv_path)
 
     eval_csv = pd.DataFrame(columns=['pvs'])
@@ -68,7 +68,7 @@ def create_evaluation_folder(folder, input_csv, version, output_csv='tlp_rating_
         eval_csv = pd.concat([eval_csv, pd.DataFrame({'pvs': [urljoin(subjective_base_url, blob_name) + RATING_SAS]})])
 
     subjective_client.get_blob_client('evaluations/' + version + '/mturk/configs/' + output_csv).upload_blob(
-        open(output_csv, 'rb'))
+        open(output_csv, 'rb'), overwrite=overwrite)
     output_csv = os.path.join(folder, output_csv)
     eval_csv.to_csv(output_csv, index=False)
 
