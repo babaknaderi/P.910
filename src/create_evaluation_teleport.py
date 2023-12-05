@@ -21,7 +21,7 @@ subjective_client = ContainerClient.from_container_url(subjective_base_url, cred
 cq_storage_base_url = 'https://cqstorageacct.blob.core.windows.net/teleport/'
 cq_storage_client = ContainerClient.from_container_url(cq_storage_base_url, credential=cq_storage_SAS)
 
-overwrite = True
+overwrite = False
 
 def create_local_config(folder, relative_url, version):
     blob = subjective_client.get_blob_client(relative_url)
