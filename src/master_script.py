@@ -214,6 +214,7 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
     config = dict()
     config['debug'] = hit_app_html_cfg['debug'] if 'debug' in hit_app_html_cfg else 'false'
     config['number_of_rating_questions'] = hit_app_html_cfg['number_of_rating_questions']
+    config['number_of_trapping_questions'] = hit_app_html_cfg['number_of_trapping_questions']
     config['rating_questions'] = hit_app_html_cfg['rating_questions']
     config['rating_answers'] = hit_app_html_cfg['rating_answers']
 

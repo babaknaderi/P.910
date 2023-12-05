@@ -139,6 +139,7 @@ var config ={
 		"plate4":5
 	},
 	numberOfRatingQuestions: {{cfg.number_of_rating_questions}},
+	numberOfTrappingQuestions: {{cfg.number_of_trapping_questions}},
 	questionUrls: {{cfg.rating_urls}},
     trainingUrls: {{cfg.training_urls}},
 	training_gold_clips: {{cfg.training_gold_clips}},
@@ -187,7 +188,8 @@ var config ={
 		"plate3":29,
 		"plate4":5
 	},
-	numberOfRatingQuestions: 8,
+	numberOfRatingQuestions: 7
+	numberOfTrappingQuestions: 1,
 	questionUrls: ['https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/expression/standalone/LS_Vishak_Take_8_emote_Perf_Camera_0_cropped_noaudio.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/speak/standalone/LS_Dharma_Take_15_speak_Perf_Camera_0_cropped.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/expression/standalone/LS_Vishak_Take_8_emote_livelink_noaudio.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/expression/standalone/LS_Dharma_Take_14_emote_Perf_Camera_0_cropped_noaudio.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/speak/standalone/LS_Vishak_Take_9_speak_livelink.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/trap/11_08_2023/speak/standalone/LS_Dharma_Take_15_speak_Perf_Camera_0_cropped_1.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/gold/11_08_2023/g1/speak/standalone/AVA2_Vishak_text.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D'],
     trainingUrls: ['https://teleportvideo.blob.core.windows.net/subjective-runs/training/standalone/Statement_Vish_AVA2.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D'],
     knownQuestionInTrainingUrl:"https://teleportvideo.blob.core.windows.net/subjective-runs/trap/11_08_2023/expression/standalone/Expressions-20231108_144153-Meeting Recording-clipped_1.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D",
@@ -423,7 +425,7 @@ $(function() {
 
 		loadTextPlaceHolders();
         // set the rating question order
-		r = range(config['numberOfRatingQuestions']);
+		r = range(config['numberOfRatingQuestions']+config['numberOfTrappingQuestions']);
 		r = shuffle(r);
 		order = r.join('_');
         $("#rating_question_order").val(order);
@@ -1781,7 +1783,7 @@ function getTelepScale(is_training){
 			'8': tp
 	}
 
-	r = range(config['numberOfRatingQuestions']);
+	r = range(config['numberOfRatingQuestions']+config['numberOfTrappingQuestions']);
 	r = shuffle(r);
 	order = r.join('_');
 	tmp_list = order.split("_");
