@@ -8,19 +8,20 @@ RATING_SAS = ''
 subjective_SAS = ''
 cq_storage_SAS = ''
 
-# config locations
+# config relative locations in container: https://teleportvideo.blob.core.windows.net/subjective-runs/
 gold_relative_url = 'configs/master/12012023/tlp_gold_clips_a.csv'
 tran_relative_url = 'configs/master/12012023/tlp_training_clips_a.csv'
 trap_relative_url = 'configs/master/12012023/tlp_trapping_clips_a.csv'
 config_relative_url = 'configs/master/12012023/master_a.cfg'
+
+
 # blob clients
 subjective_base_url = 'https://teleportvideo.blob.core.windows.net/subjective-runs/'
 subjective_client = ContainerClient.from_container_url(subjective_base_url, credential=subjective_SAS)
 cq_storage_base_url = 'https://cqstorageacct.blob.core.windows.net/teleport/'
 cq_storage_client = ContainerClient.from_container_url(cq_storage_base_url, credential=cq_storage_SAS)
 
-overwrite = False
-
+overwrite = True
 
 def create_local_config(folder, relative_url, version):
     blob = subjective_client.get_blob_client(relative_url)
@@ -88,3 +89,5 @@ def create_evaluation(rating_source, version):
 csv_file = r'C:\github\P.910\new_study\rating_source.csv'
 eval_ver = '12_04_2023'
 create_evaluation(csv_file, eval_ver)
+
+
