@@ -138,7 +138,6 @@ var config ={
 		"plate3":29,
 		"plate4":5
 	},
-	numberOfRatingQuestions: {{cfg.number_of_rating_questions}},
 	useTrappingQuestion: {{cfg.use_trapping_question}},
 	useRepeatedQuestion: {{cfg.use_repeated_question}},
 	ratingQuestions: {{cfg.rating_questions}},
@@ -191,7 +190,6 @@ var config ={
 		"plate3":29,
 		"plate4":5
 	},
-	numberOfRatingQuestions: {{cfg.number_of_rating_questions}},
 	useTrappingQuestion: {{cfg.use_trapping_question}},
 	useRepeatedQuestion: {{cfg.use_repeated_question}},
 	ratingQuestions: {{cfg.rating_questions}},
@@ -1771,6 +1769,8 @@ function getTelepScale(is_training){
 	postfix = postfix + '<input type="hidden" name="'+p+'{0}_tpid" value="'+tp['tp_id']+'">';
 
 	list = config['ratingQuestions'];
+	config['numberOfRatingQuestions'] = Object.keys(list).length;
+
 	if (config['useTrappingQuestion'] ==1){
 		index = config['numberOfRatingQuestions']+1;
 		list[index.toString()] = tp;
@@ -3084,28 +3084,7 @@ function avoidAnsweringBeforeWatchingThrough(){
     </div>
     <div class="panel-collapse collapse in" id="instructionImp">
       <div class="panel-body">
-        <p>Almost ready to start. </p>
-        <p>Thank you for participating in this subjective study aimed at assessing the trustworthiness and realism of avatars in online meetings. Your feedback will help us understand how users perceive and interact with avatars. Please provide honest and thoughtful responses to the following question:</p>
-        <ul>
-			<li> Single Video: You are given a video of avatar and asked a question about trustworthiness, realism, and being comfortable using/interacting with the avatar in online meetings. Your task is to rate the question in the following scale:
-				<ul>
-					<li>Strongly agree</li>
-            		<li>Agree</li>
-            		<li>Neutral</li>
-            		<li>Disagree</li>
-            		<li>Strongly disagree</li>
-          		</ul>
-			</li>
-<!--          	<li> Side by Side: You are given a side by side real video or a person and its avatar version, and your task is to compare the expression of the avatar to that of the real video and rate this comparison in the scale of 1 to 5.-->
-<!--				<ul>-->
-<!--					<li>5. Strongly agree</li>-->
-<!--            		<li>4. Agree</li>-->
-<!--            		<li>3. Neither agree nor disagree</li>-->
-<!--            		<li>2. Disagree</li>-->
-<!--            		<li>1. Strongly disagree</li>-->
-<!--          		</ul>-->
-<!--			</li>-->
-		</ul>
+		  {{cfg.instruction_html}}
       </div>
     </div>
   </div>
