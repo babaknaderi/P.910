@@ -138,8 +138,10 @@ var config ={
 		"plate3":29,
 		"plate4":5
 	},
-	numberOfRatingQuestions: {{cfg.number_of_rating_questions}},
-	numberOfTrappingQuestions: {{cfg.number_of_trapping_questions}},
+	useTrappingQuestion: {{cfg.use_trapping_question}},
+	useRepeatedQuestion: {{cfg.use_repeated_question}},
+	ratingQuestions: {{cfg.rating_questions}},
+	ratingAnswers: {{cfg.rating_answers}},
 	questionUrls: {{cfg.rating_urls}},
     trainingUrls: {{cfg.training_urls}},
 	training_gold_clips: {{cfg.training_gold_clips}},
@@ -188,17 +190,15 @@ var config ={
 		"plate3":29,
 		"plate4":5
 	},
-	numberOfRatingQuestions: 7
-	numberOfTrappingQuestions: 1,
+	useTrappingQuestion: {{cfg.use_trapping_question}},
+	useRepeatedQuestion: {{cfg.use_repeated_question}},
+	ratingQuestions: {{cfg.rating_questions}},
+	ratingAnswers: {{cfg.rating_answers}},
 	questionUrls: ['https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/expression/standalone/LS_Vishak_Take_8_emote_Perf_Camera_0_cropped_noaudio.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/speak/standalone/LS_Dharma_Take_15_speak_Perf_Camera_0_cropped.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/expression/standalone/LS_Vishak_Take_8_emote_livelink_noaudio.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/expression/standalone/LS_Dharma_Take_14_emote_Perf_Camera_0_cropped_noaudio.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/speak/standalone/LS_Vishak_Take_9_speak_livelink.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/trap/11_08_2023/speak/standalone/LS_Dharma_Take_15_speak_Perf_Camera_0_cropped_1.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/gold/11_08_2023/g1/speak/standalone/AVA2_Vishak_text.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D'],
-    trainingUrls: ['https://teleportvideo.blob.core.windows.net/subjective-runs/training/standalone/Statement_Vish_AVA2.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D'],
-    knownQuestionInTrainingUrl:"https://teleportvideo.blob.core.windows.net/subjective-runs/trap/11_08_2023/expression/standalone/Expressions-20231108_144153-Meeting Recording-clipped_1.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D",
-    knownQuestionInTrainingAns: "1",
-	training_gold_clips: [
-		{'url': 'https://teleportvideo.blob.core.windows.net/subjective-runs/training/standalone/Statement_Vish_AVA2.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 
-		'realistic': {'ans': '2', 'msg': 'realistic should be 2', 'var': 0}, 
-		'trust': {'ans': '5', 'msg': 'trust should be 5', 'var': 1}}
-	],
+    trainingUrls: {{cfg.training_urls}},
+	training_gold_clips: {{cfg.training_gold_clips}},
+    knownQuestionInTrainingUrl:"{{cfg.training_trap_urls}}",
+    knownQuestionInTrainingAns: "{{cfg.training_trap_ans}}",
     knownQuestionUrl:"https://teleportvideo.blob.core.windows.net/subjective-runs/trap/11_08_2023/speak/standalone/LS_Dharma_Take_15_speak_Perf_Camera_0_cropped_1.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D",
     knownQuestionAns: "1",
     randomizeTrainingQuestions:"true",
@@ -424,11 +424,6 @@ $(function() {
 		initializeSetup();
 
 		loadTextPlaceHolders();
-        // set the rating question order
-		r = range(config['numberOfRatingQuestions']+config['numberOfTrappingQuestions']);
-		r = shuffle(r);
-		order = r.join('_');
-        $("#rating_question_order").val(order);
 
 		generate_training_section();
 		generate_rating_section();
@@ -1768,22 +1763,20 @@ function getTelepScale(is_training){
 	
 	var postfix = ' </tbody> </table> </fieldset> </div> <div class="col-sm-2"></div> </div>';
 
-    answers = [[5,'Strongly agree'], [4,'Agree'], [3,'Neutral'], [2,'Disagree'], [1,'Strongly disagree']];
+    answers = config['ratingAnswers'];
 
 	let tp = get_a_tp();
 	postfix = postfix + '<input type="hidden" name="'+p+'{0}_tpid" value="'+tp['tp_id']+'">';
-	list ={
-			'1': {'id': 'trust', 'text': 'I would trust a person using this avatar'},
-			'2': {'id': 'realistic', 'text': 'This avatar is realistic'},
-			'3': {'id': 'comfortableusing', 'text': 'I would be comfortable using this avatar for work'},
-			'4': {'id': 'comfortableinteracting', 'text': 'I would be comfortable interacting with this avatar for work'},
-			'5': {'id': 'appropriate', 'text': 'The avatar is appropriate for work'},
-			'6': {'id': 'creepy', 'text': 'The avatar is creepy'},
-			'7': {'id': 'formal', 'text': 'The avatar looks formal (not cartoonish)'},
-			'8': tp
-	}
 
-	r = range(config['numberOfRatingQuestions']+config['numberOfTrappingQuestions']);
+	config['numberOfRatingQuestions']=config['ratingQuestions'].length;
+
+	list = config['ratingQuestions'];
+	if (config['useTrappingQuestion'] ==1){
+		index = config['numberOfRatingQuestions']+1;
+		list[index.toString()] = tp;
+		}
+
+	r = range(config['numberOfRatingQuestions']+config['useTrappingQuestion']);
 	r = shuffle(r);
 	order = r.join('_');
 	tmp_list = order.split("_");
@@ -1802,7 +1795,7 @@ function getTelepScale(is_training){
 		tmp = getRatingSection(p, tmp['id'], tmp['text'], answers);
         tmp = tmp.replace("_elmt_X", "_elmt_" + i);
         html = html + tmp;
-		if (i==insert_after){
+		if (i==insert_after && config['useRepeatedQuestion'] ==1){
 			// randomly select one item from first_three_q
 			let r_item = first_three_q[Math.floor(Math.random() * first_three_q.length)];			
 			repeated_item = getRatingSection(p,'repeatingitem', r_item['text'], answers);
