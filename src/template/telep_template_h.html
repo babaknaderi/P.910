@@ -138,6 +138,7 @@ var config ={
 		"plate3":29,
 		"plate4":5
 	},
+	numberOfRatingQuestions: {{cfg.number_of_rating_questions}},
 	useTrappingQuestion: {{cfg.use_trapping_question}},
 	useRepeatedQuestion: {{cfg.use_repeated_question}},
 	ratingQuestions: {{cfg.rating_questions}},
@@ -190,6 +191,7 @@ var config ={
 		"plate3":29,
 		"plate4":5
 	},
+	numberOfRatingQuestions: {{cfg.number_of_rating_questions}},
 	useTrappingQuestion: {{cfg.use_trapping_question}},
 	useRepeatedQuestion: {{cfg.use_repeated_question}},
 	ratingQuestions: {{cfg.rating_questions}},
@@ -1767,8 +1769,6 @@ function getTelepScale(is_training){
 
 	let tp = get_a_tp();
 	postfix = postfix + '<input type="hidden" name="'+p+'{0}_tpid" value="'+tp['tp_id']+'">';
-
-	config['numberOfRatingQuestions']=config['ratingQuestions'].length;
 
 	list = config['ratingQuestions'];
 	if (config['useTrappingQuestion'] ==1){
