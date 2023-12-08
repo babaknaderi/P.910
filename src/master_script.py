@@ -20,6 +20,7 @@ import create_input as ca
 from azure_clip_storage import AzureClipStorage, TrappingSamplesInStore, GoldSamplesInStore
 import math
 
+
 def create_analyzer_cfg(cfg, template_path, out_path, n_HITs):
     """
     create cfg file to be used by analyzer script (DCR method)
@@ -299,10 +300,10 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
             train_urls.append(row['training_pvs'])
         train_urls.append(trap_url)
 
-    if args.training_gold_clips:        
+    if args.training_gold_clips:
         df_train = pd.read_csv(args.training_gold_clips)
-        gold_in_train = []        
-        cols = ['trust_ans','realistic_ans','comfortableusing_ans', 'comfortableinteracting_ans', 'appropriate_ans', 'creepy_ans', 'formal_ans' ]
+        gold_in_train = []
+        cols = list(df_train.columns.where(df_train.columns.str.endswith('_ans')).dropna())
 
         for _, row in df_train.iterrows():
             train_urls.append(row["training_pvs"])
@@ -311,12 +312,12 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
             }
             for col in cols:
                 if not math.isnan(row[col]):
-                    #coded_ans = get_encoded_gold_ans(row["training_clips"], row[col])                    
+                    # coded_ans = get_encoded_gold_ans(row["training_clips"], row[col])
                     prfx = col.split('_')[0]
-                    data[prfx] = {'ans': str(int(row[col])),'msg': row[f"{prfx}_msg"],'var': round(row[f"{prfx}_var"])}
+                    data[prfx] = {'ans': str(int(row[col])), 'msg': row[f"{prfx}_msg"],
+                                  'var': round(row[f"{prfx}_var"])}
             gold_in_train.append(data.copy())
         config["training_gold_clips"] = gold_in_train
-
 
     config['training_urls'] = train_urls
 
@@ -635,8 +636,9 @@ if __name__ == '__main__':
     parser.add_argument("--trapping_clips", help="A csv containing urls of all trapping clips. Columns 'trapping_pvc'"
                                                  "and 'trapping_ans'. In case of DCR also 'trapping_src'")
     parser.add_argument(
-        "--training_gold_clips", default=None,  help="A csv containing urls and details of gold training questions ",     required=False)
-    
+        "--training_gold_clips", default=None, help="A csv containing urls and details of gold training questions ",
+        required=False)
+
     # check input arguments
     args = parser.parse_args()
 
@@ -648,10 +650,10 @@ if __name__ == '__main__':
     if args.training_clips:
         assert os.path.exists(args.training_clips), f"No csv file containing training clips in {args.training_clips}"
     elif args.training_gold_clips:
-        assert os.path.exists(args.training_gold_clips), f"No csv file containing training_gold_clips in {args.training_gold_clips}"
+        assert os.path.exists(
+            args.training_gold_clips), f"No csv file containing training_gold_clips in {args.training_gold_clips}"
     else:
         raise ValueError("No training or training_gold clips provided")
-
 
     cfg = CP.ConfigParser()
     cfg._interpolation = CP.ExtendedInterpolation()
