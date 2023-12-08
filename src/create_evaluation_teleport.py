@@ -130,7 +130,7 @@ def merge_clips_into_side_by_side(merge_csv_file):
             # add to rating_source
             rating_source = pd.concat(
                 [rating_source,
-                 pd.DataFrame({'model': [model], 'type': [type], 'clip_url': [cq_storage_base_url + + blob_name]})])
+                 pd.DataFrame({'model': [model], 'type': [type], 'clip_url': [cq_storage_base_url + blob_name]})])
         except Exception as e:
             print(e)
     # delete temp files
