@@ -1768,12 +1768,12 @@ function getTelepScale(is_training){
 	let tp = get_a_tp();
 	postfix = postfix + '<input type="hidden" name="'+p+'{0}_tpid" value="'+tp['tp_id']+'">';
 
-	list = config['ratingQuestions'];
-	config['numberOfRatingQuestions'] = Object.keys(list).length;
+	questions = {...config['ratingQuestions']};
+	config['numberOfRatingQuestions'] = Object.keys(questions).length;
 
 	if (config['useTrappingQuestion'] ==1){
 		index = config['numberOfRatingQuestions']+1;
-		list[index.toString()] = tp;
+		questions[index.toString()] = tp;
 		}
 
 	r = range(config['numberOfRatingQuestions']+config['useTrappingQuestion']);
@@ -1788,7 +1788,7 @@ function getTelepScale(is_training){
 	let insert_after = tmp_list.length - Math.floor(Math.random() * 3)-1;
 
     for (i=0; i<tmp_list.length; i++){
-        tmp = list[tmp_list[i]];
+        tmp = questions[tmp_list[i]];
 		if (i<3){
 			first_three_q.push(tmp);
 		}
