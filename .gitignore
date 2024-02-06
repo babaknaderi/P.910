@@ -139,3 +139,5 @@ hitapp_server/static/**/*.csv
 
 *.tar.*
 *.zip
+ans_s1-4-back2_retry/*
+Teleport*/*

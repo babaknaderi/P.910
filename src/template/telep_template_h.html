@@ -102,57 +102,6 @@ border-bottom-left-radius: 5px;  border-bottom-right-radius: 5px;}
 </style>
 
 <script type="text/javascript">
-/*
-var config ={
-	debug:"true",
-	cookieName:"tp_TMG7G9EY7W",
-	qualificationCookieName:"qual_tp_CAR7LO5CY2",
-	qualificationValidFor:43200,
-	internet_speed_Mbps:80,
-	allowedMaxHITsInProject:80,
-	forceRetrainingInHours:1,
-    showSetupEveryMinutes: 45,
-    // could be 9 or 5
-    scale_points: 5,
-    // qualification
-	min_screen_refresh_rate: 10,
-	min_resolution:{w: 1920, h:1080},
-	// tablets will be included in PC, values:PC,MOBILE
-	device_accepted_device:["PC"],
-	viewing_distance:{
-		'img_path':'https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/distance/img3_{0}.jpg',
-		'base_id': '0',
-		'too_close':'3',
-		'normal':'5',
-		'too_far':'7'
-	},
-	block_matrix:{
-		'img': 'https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/block_matrix/m5/Yzo4X3Q6Mg==.jpg',
-		'circles': 10.0,
-		'triangles': 5.0,
-		'dummy':'dummy',
-		'max_tries': 4
-	},
-
-	plates:{
-		"plate3":29,
-		"plate4":5
-	},
-	questionUrls: ['https://p910.azureedge.net/video/MLVC_FRVQA_dataset_cs_fmt/29/src/1e3224380c76fb4cad0a8d3a7c74a8d5bf0688d13df15f23acd2512de4374cb4_1920x1080_24fps.mp4'],
-    trainingUrls: ['https://mlvideo.blob.core.windows.net/video/tmp/tmp_shared/video.mp4'],
-	
-	is_ccr: 'false',
-
-    knownQuestionInTrainingUrl:"https://audiosamplesp808.blob.core.windows.net/p910-assets/sample_videos/tmp/04a1274a93ec6a36ad2c1cb5eb83c3bdf2cf05bbe01c70a8ca846a7f9fa4b550_-3.mp4",
-    knownQuestionInTrainingAns: "1",
-
-    knownQuestionUrl:"https://audiosamplesp808.blob.core.windows.net/p910-assets/sample_videos/tmp/8cbafab285e74614f10d3a8bf9ee94434eacae6332f5f10fe1e50bfe5de9ec33_-3.mp4",
-    knownQuestionAns: "1",
-    randomizeTrainingQuestions:"true",
-    randomizeRatingQuestions:"true",
-    emailAddress: "ic3ai@outlook.com"
-} */
-
 
 var config ={
 	debug:"{{cfg.debug}}",
@@ -189,9 +138,13 @@ var config ={
 		"plate3":29,
 		"plate4":5
 	},
-	numberOfRatingQuestions: {{cfg.number_of_rating_questions}},
+	useTrappingQuestion: {{cfg.use_trapping_question}},
+	useRepeatedQuestion: {{cfg.use_repeated_question}},
+	ratingQuestions: {{cfg.rating_questions}},
+	ratingAnswers: {{cfg.rating_answers}},
 	questionUrls: {{cfg.rating_urls}},
     trainingUrls: {{cfg.training_urls}},
+	training_gold_clips: {{cfg.training_gold_clips}},
     knownQuestionInTrainingUrl:"{{cfg.training_trap_urls}}",
     knownQuestionInTrainingAns: "{{cfg.training_trap_ans}}",
 
@@ -201,7 +154,57 @@ var config ={
     randomizeRatingQuestions:"true",
     emailAddress: "{{cfg.contact_email}}"
 }
+/*
+var config ={
+	debug:"true",
+	cookieName:"acr_IGPCQPZTS1",
+	qualificationCookieName:"qul_RVXDUZX0QG",
+	qualificationValidFor:43200,
+	internet_speed_Mbps:40,
+	allowedMaxHITsInProject:4,
+	forceRetrainingInHours:1,
+    showSetupEveryMinutes:30,
+    // could be 9 or 5
+    scale_points: 5,
+    // qualification
+	min_screen_refresh_rate: 10,
+	min_resolution:{w: 1920, h:1080},
+	// tablets will be included in PC, values:PC,MOBILE
+	device_accepted_device:["PC"],
+	viewing_distance:{
+		'img_path':'https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/distance/img3_{0}.jpg',
+		'base_id': '0',
+		'too_close':'3',
+		'normal':'5',
+		'too_far':'7'
+	},
+	block_matrix:{
+		'img': 'https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/block_matrix/m5/Yzo2X3Q6Mw==.jpg',
+		'circles': 8.0,
+		'triangles': 6.0,
+		'dummy':'dummy',
+		'max_tries': 4
+	},
 
+	plates:{
+		"plate3":29,
+		"plate4":5
+	},
+	useTrappingQuestion: {{cfg.use_trapping_question}},
+	useRepeatedQuestion: {{cfg.use_repeated_question}},
+	ratingQuestions: {{cfg.rating_questions}},
+	ratingAnswers: {{cfg.rating_answers}},
+	questionUrls: ['https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/expression/standalone/LS_Vishak_Take_8_emote_Perf_Camera_0_cropped_noaudio.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/speak/standalone/LS_Dharma_Take_15_speak_Perf_Camera_0_cropped.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/expression/standalone/LS_Vishak_Take_8_emote_livelink_noaudio.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/expression/standalone/LS_Dharma_Take_14_emote_Perf_Camera_0_cropped_noaudio.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/11_08_2023/speak/standalone/LS_Vishak_Take_9_speak_livelink.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/trap/11_08_2023/speak/standalone/LS_Dharma_Take_15_speak_Perf_Camera_0_cropped_1.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/gold/11_08_2023/g1/speak/standalone/AVA2_Vishak_text.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D'],
+    trainingUrls: {{cfg.training_urls}},
+	training_gold_clips: {{cfg.training_gold_clips}},
+    knownQuestionInTrainingUrl:"{{cfg.training_trap_urls}}",
+    knownQuestionInTrainingAns: "{{cfg.training_trap_ans}}",
+    knownQuestionUrl:"https://teleportvideo.blob.core.windows.net/subjective-runs/trap/11_08_2023/speak/standalone/LS_Dharma_Take_15_speak_Perf_Camera_0_cropped_1.mp4?sv=2023-01-03&ss=b&srt=o&st=2023-11-10T00%3A48%3A59Z&se=2023-12-01T00%3A48%3A00Z&sp=r&sig=ciM5X%2FQyTDiIj57uJPW7Oxrzhl%2BqBYu%2FyJzCpPhOkac%3D",
+    knownQuestionAns: "1",
+    randomizeTrainingQuestions:"true",
+    randomizeRatingQuestions:"true",
+    emailAddress: "ic3ai@outlook.com"
+}*/
 //---- for video player
 max_accepted_extra_playing_time_sec = 2.5;
 const videos_not_loaded_yet_set = new Set()
@@ -421,11 +424,6 @@ $(function() {
 		initializeSetup();
 
 		loadTextPlaceHolders();
-        // set the rating question order
-		r = range(config['numberOfRatingQuestions']);
-		r = shuffle(r);
-		order = r.join('_');
-        $("#rating_question_order").val(order);
 
 		generate_training_section();
 		generate_rating_section();
@@ -508,7 +506,12 @@ $(function() {
 				activate_setup_section(true);
 				activate_training_section(true);
 				activate_rating_section(true);
-			}
+		}
+		// make sure to pase all video playbacks when tab is switched
+		$('.nav-tabs a').on('shown.bs.tab', function(event){
+			console.log("tab changed");
+  			pauseAll();
+		});
 	}catch(err){
 		console.error(err);
 		recordError(err.name,err.message, true);
@@ -1432,6 +1435,7 @@ const VIEWING_DISTANCE = Object.freeze({"TOO_CLOSE":1, "TOO_FAR":3, "UNKNOWN": 4
 	Callback when "Next" in Training section is clicked.
 */
 function showNextQuestionInTrainingSection(){
+	pauseAll();
 	var count = $("#trainingTabs li").length;
 	id=$("#trainingTabs li.active").index();
 	if (id+1!=count){
@@ -1449,6 +1453,7 @@ function showNextQuestionInTrainingSection(){
 	Callback when "Previous" in Training section is clicked.
 */
 function showPreviousQuestionInTrainingSection(){
+	pauseAll();
 	id=$("#trainingTabs li.active").index();
 	id=id;
 	$('#trainingTabs li:nth-child('+id+') a').tab('show');
@@ -1462,6 +1467,7 @@ var trainingStimulusPlayed;
   config.forceRetrainingInHours
 */
 function playedVideoTraining(id){
+	console.log('playedVideoTraining::'+id);
 	let id_num= id.substring(1);
 	played= $("#video_n_finish_{0}".f(id)).val();
 	$('input[name^="{0}"]'.f(id)).off('change');
@@ -1473,6 +1479,16 @@ function playedVideoTraining(id){
 		element = $('input[name^="t{0}"]'.f(id_num));
 		element.unbind();
 		element.on('change', onValueChangeForTpQuestionInTraining);
+	}
+	training_clip = getGoldQuestionInTrainingInfo($('span[id="' + id + '"]').attr("data-src-clip"));
+	console.log(training_clip);
+	if (training_clip != null) {
+		console.log("was the gold");
+		element = $('input[name^="'+id+'_"]');
+		element.unbind('change');
+		element.on('click', function () {
+			return onValueChangeForGoldQuestionInTraining(this, training_clip['url'], training_clip)
+		});
 	}
 }
 
@@ -1555,6 +1571,7 @@ function playedVideoQ(id){
 	Callback when "Next" in Rating section is clicked.
 */
 function showNextQuestionInRatingSection(){
+	pauseAll();
 	var count = $("#nav-tab-ul li").length;
 	id=$("#nav-tab-ul li.active").index();
 	if (id+2==count){
@@ -1569,6 +1586,7 @@ function showNextQuestionInRatingSection(){
 	Callback when "Previous" in Rating section is clicked.
 */
 function showPreviousQuestionInRatingSection(){
+	pauseAll();
 	id=$("#nav-tab-ul li.active").index();
 	id=id;
 	$('#nav-tab-ul li:nth-child('+id+') a').tab('show');
@@ -1700,67 +1718,171 @@ function on_setup_performed(status){
 <script type="text/javascript">
 
 function getRatingSection(questionType, questionName, question, answers){
-	html_section = '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
-	'<fieldset id="fieldset_'+questionType+'{0}_'+questionName+'" class="trainingFieldset" title="">'+
-    '<p style="margin-top:10px;">'+question+'</p>'+
-    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>';
+	html_section = '<tr><td><p class ="statement">'+question+'</p></td>';
+	
 	for (const [key, value] of answers) {
-			html_section += '<tr><td><div class="radio" ><label > <input type="radio" name="'+questionType+'{0}_'+questionName+'" value="'+key+'">'+value+'</label></div></td><td class="c">'+key+'</td></tr>';
+
+			html_section += '<td class="text-center"><label for="'+questionType+'{0}_'+questionName+'_'+key+'" style="width:100%" ><input type="radio" id="'+questionType+'{0}_'+questionName+'_'+key+'" name="'+questionType+'{0}_'+questionName+'" value="'+key+'" required="" title="'+value+'"> </label></td>';
 		}
-    html_section +='</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
+    html_section +='</tr>' ;
 
 	return html_section;
 };
 
-function getTelepScale(order, is_training){
-	let p ='Q';
-	if (is_training){
-         p = 'T';
-    }
+function get_a_tp(){
+	tps = [
+		{'id':'tp', 'tp_id':'lessthan5', 'text': 'I am less than five years old'},
+		{'id':'tp', 'tp_id':'cantreadenglish', 'text': 'I cannot read text in English'},
+		//{'id':'olderthan5', 'text': 'I am older than five years old'},
+		//{'id':'canreadenglish', 'text': 'I can read text in English'},
+	];
+	// select a random items from tps and retun it
+	return tps[Math.floor(Math.random() * tps.length)];
+}
 
+function getTelepScale(is_training){
+	let p ='q';
+	if (is_training){
+         p = 't';
+    }
+	
     var overhead = '<div class="tab-pane fade {2}" id="'+p+'{0}-panel" role="tabpanel" aria-labelledby="'+p+'{0}-tab"><p></p>'+
 	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
-	'<p style="margin-top:10px;">{0}. Watch the following video clip and answer to the following questions? </p> <div class="row"> <p align="center">'+
-	'<span class="velmnt" id="'+p+'{0}" data-src-clip="{1}" data-onfinished="playedVideoTraining" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>';
+	'<p style="margin-top:10px;">{0}. Watch the following video clip and specify how much you agree with each statement? </p> <div class="row"> <p align="center"> '+
+	'<span class="velmnt" id="'+p+'{0}" data-src-clip="{1}" data-onfinished="playedVideoTraining" data-scale="{{cfg.video_player}}"></span> </p> '+	
+	' </div> </div> <div class="col-sm-2"></div> </div> ' +
+	//'<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+'<fieldset id="fieldset_Q{0}" class="trainingFieldset" title="">'+
+	'<div class="row"> <div class="col-sm-2"></div>	<div class="col-sm-8"> <fieldset id="fieldset_'+p+'{0}" class="trainingFieldset" title="">'+
+	'<table class="table questionnaire">  <thead>   <tr>  <th scope="col" style="width: 50%;">Statement</th>'+
+	'<th scope="col" class="text-center" style="width: 10%;">Strongly agree</br>(++)</th> '+
+	'<th scope="col" class="text-center"  style="width: 10%;">Agree</br>(+)</th> '+
+	'<th scope="col" class="text-center"  style="width: 10%;">Neutral</br>(O)</th> '+
+	'<th scope="col" class="text-center"  style="width: 10%;">Disagree</br>(-)</th> '+
+	'<th scope="col" class="text-center"  style="width: 10%;">Strongly disagree</br>(--)</th> '+
+	'</tr>  </thead>  <tbody>'; 
+	
+	var postfix = ' </tbody> </table> </fieldset> </div> <div class="col-sm-2"></div> </div>';
 
-    answers = [[5,'Strongly agree'], [4,'Agree'], [3,'Neutral'], [2,'Disagree'], [1,'Strongly disagree']];
+    answers = config['ratingAnswers'];
 
-    var s_trust = getRatingSection(p,'trust', 'I would trust a person using this avatar', answers);
-    var s_realistic = getRatingSection(p, 'realistic', 'This avatar is realistic', answers);
-    var s_comfortableusing = getRatingSection(p, 'comfortableusing', 'I would be comfortable using this avatar for work', answers);
-    var s_comfortableinteracting =getRatingSection(p, 'comfortableinteracting', 'I would be comfortable interacting with this avatar for work', answers);
-    var s_appropriate =getRatingSection(p, 'appropriate', 'The avatar is appropriate for work', answers);
-    var s_creepy =getRatingSection(p, 'creepy', 'The avatar is creepy', answers);
-    var s_formal =getRatingSection(p, 'formal', 'The avatar looks formal (not cartoonish)', answers);
-    var s_lookslike =getRatingSection(p, 'lookslike', 'The avatar (left) looks like the person (right)', answers);
-    var s_facialexpressions =getRatingSection(p, 'facialexpressions', 'The avatar’s facial expressions (left) are accurate with the video (right)', answers);
+	let tp = get_a_tp();
+	postfix = postfix + '<input type="hidden" name="'+p+'{0}_tpid" value="'+tp['tp_id']+'">';
 
+	questions = {...config['ratingQuestions']};
+	config['numberOfRatingQuestions'] = Object.keys(questions).length;
 
-    list ={
-			'1': s_trust,
-			'2': s_realistic,
-			'3': s_comfortableusing,
-			'4': s_comfortableinteracting,
-			'5': s_appropriate,
-			'6': s_creepy,
-			'7': s_formal,
-			'8': s_lookslike,
-			'9': s_facialexpressions
+	if (config['useTrappingQuestion'] ==1){
+		index = config['numberOfRatingQuestions']+1;
+		questions[index.toString()] = tp;
 		}
 
+	r = range(config['numberOfRatingQuestions']+config['useTrappingQuestion']);
+	r = shuffle(r);
+	order = r.join('_');
+	tmp_list = order.split("_");
+
     var html = overhead;
-    tmp_list = order.split("_");
+
+	// select one of the first three items randomly and repeat it somewhere between the last 4 items
+	var first_three_q =[]
+	let insert_after = tmp_list.length - Math.floor(Math.random() * 3)-1;
+
     for (i=0; i<tmp_list.length; i++){
-        tmp = list[tmp_list[i]];
+        tmp = questions[tmp_list[i]];
+		if (i<3){
+			first_three_q.push(tmp);
+		}
+		tmp = getRatingSection(p, tmp['id'], tmp['text'], answers);
         tmp = tmp.replace("_elmt_X", "_elmt_" + i);
         html = html + tmp;
+		if (i==insert_after && config['useRepeatedQuestion'] ==1){
+			// randomly select one item from first_three_q
+			let r_item = first_three_q[Math.floor(Math.random() * first_three_q.length)];			
+			repeated_item = getRatingSection(p,'repeatingitem', r_item['text'], answers);
+			postfix = postfix + '<input type="hidden" name="'+p+'{0}_repeatedid" value="'+r_item['id']+'">';
+			// _i need to be corrected
+			repeated_item = repeated_item.replace("_elmt_X", "_elmt_" + i);
+			html = html + repeated_item;
+		}
     }
+	html = html + postfix;
     if (!is_training){
         html = html.replaceAll("t{0}", "q{0}").replaceAll("trainingFieldset", "ratingFieldset").replaceAll("T{0}", "Q{0}").replaceAll("playedAudioTraining", "playedAudioQ");
     }
     return html;
+}
+//----------------------- training with response
+
+/**
+ * Check is the givebn url belongs to a trapping questionin training section, If so returns its info, otherwise null-
+ * @param {*} element
+ **/
+function getGoldQuestionInTrainingInfo(url){
+	console.log('getGoldQuestionInTrainingInfo');
+	console.log(url);
+	// check if training_gold_clips is in config
+	if (!('training_gold_clips' in config))
+		return null;
+
+	training_keys = config['training_gold_clips']
+	for (let index = 0; index < training_keys.length; index++) {
+		obj = training_keys[index];
+		if (obj['url'] == url) {
+			return obj;
+		}
+	}
+	return null;
+}
+
+function isGoldQuestionInTraining(id) {
+	console.log('isGoldQuestionInTraining');
+	console.log(id);
+	training_clip = getGoldQuestionInTrainingInfo($('span[id="' + id + '"]').attr("data-src-clip"));
+	if (training_clip!=null)
+		return true;
+	return false;
 
 }
+
+function checkGoldQCorrect(given_ans, accepted_var, correct_hash, url) {
+	console.log('checkGoldQCorrect');
+	// return true if correct_hash is null or its lenght after trim is 0
+	if (!correct_hash || correct_hash.trim().length == 0)
+		return true;
+	
+	//console.log("++++++++++++++ checkGoldQCorrect");
+	for (var i = given_ans - accepted_var ; i <= given_ans + accepted_var ; i++) {
+		//console.log(i);
+		//console.log(url+"_"+i);
+		//console.log(correct_hash);
+
+		//if (btoa(url+"_"+i) == correct_hash){
+		if (i == correct_hash){
+			//console.log("++++++++++++++ correct ans is: "+i);
+			return true;
+		}				
+	}
+	return false;
+}
+
+function onValueChangeForGoldQuestionInTraining(obj, url, c_ans) {
+	console.log("gold onValueChangeForGoldQuestionInTraining");
+
+	q_name = $(obj).attr('name');
+	tmp = q_name.split('_');
+	scale = tmp[tmp.length-1];
+	ans = c_ans[scale];		
+	if (ans == null)
+		return;
+
+	if ( !checkGoldQCorrect(Number($(obj).val()), ans["var"], ans["ans"], c_ans["url"])){			
+		alert(ans["msg"]);
+		$(obj).prop('checked', false);
+		return false;
+	}
+}
+
+//--------------------------
 
 function getACRScale(type, is_training){
 	let p ='q';
@@ -1798,31 +1920,18 @@ function getACRScale(type, is_training){
 	Generate the training section
 */
 function generate_training_section(){
-	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#T{0}-panel" id="T{0}-tab " role="tab" aria-controls="T{0}" {2}>Q. {0}</a></li>';
-    /*
-	dcr_tab ='<div class="tab-pane fade {2}" id="T{0}-panel" role="tabpanel" aria-labelledby="T{0}-tab"><p></p>'+
-	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
-	'<p style="margin-top:10px;">{0}. How do you rate the quality of the following video clip? </p> <div class="row"> <p align="center">'+
-	'<span class="velmnt" id="t{0}" data-src-clip="{1}" data-onfinished="playedVideoTraining" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>'+
-	'<div class="row">	<div class="col-sm-4"></div>	<div class="col-sm-4">'+
-	'<fieldset id="fieldset_t{0}" class="trainingFieldset" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The quality is</th><th class="c" >Score</th></tr></thead><tbody>'+
-	getACRScale(config['scale_points'], true)+
-	'</tbody></table></fieldset><p></p></div> <div class="col-sm-4"></div></div> </div>';
-    */
-    // load the order
-	order = $("#rating_question_order").val();
+	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#t{0}-panel" id="t{0}-tab " role="tab" aria-controls="t{0}" {2}>Q. {0}</a></li>';
 
-    var dcr_tab = getTelepScale(order, true);
-	// this will show which url was shown by in which question as their orther will be randomized
+	// this will show which url was shown by in which question as their order will be randomized
 	input_template= '<input id="T{0}_URL" name="T{0}_URL" type="hidden" value="{1}" />';
 
+	urls = config['trainingUrls'];
     if (JSON.parse(config['randomizeTrainingQuestions']))
-		urls = shuffle(config['trainingUrls']);
-	else
-		urls = config['trainingUrls'];
+		urls = shuffle(urls);
 
 	var i;
 	for (i = 0; i < urls.length; i++) {
+	    var dcr_tab = getTelepScale(true);
 		if (i==0){
 			$('#trainingTabs').append(dcr_nav_tab.f(i+1,'active', 'ria-selected="true"'));
 			$('#nav-tabContent').append(dcr_tab.f(i+1, urls[i],'in active'));
@@ -1840,23 +1949,9 @@ function generate_training_section(){
 	Generate rating section
 */
 function generate_rating_section(){
-	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#Q{0}-panel" id="Q{0}-tab " role="tab" aria-controls="Q{0}" {2}>Q. {0}</a></li>';
-	/*
-    dcr_tab ='<div class="tab-pane fade {2}" id="Q{0}-panel" role="tabpanel" aria-labelledby="Q{0}-tab"><p></p>'+
-	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
-	'<p style="margin-top:10px;">{0}. How do you rate the quality of the following video clip?? </p> <div class="row"> <p align="center">'+
-	'<span class="velmnt" id="Q{0}" data-src-clip="{1}" data-onfinished="playedVideoQ" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>'+
-	'<div class="row">	<div class="col-sm-4"></div>	<div class="col-sm-4">'+
-	'<fieldset id="fieldset_Q{0}" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The quality is</th><th class="c" >Score</th></tr></thead><tbody>'+
-	getACRScale(config['scale_points'], false)+
-	'</tbody></table></fieldset><p></p></div> <div class="col-sm-4"></div></div> </div>';
-    */
-    // set the order of scale
-	order = $("#rating_question_order").val();
+	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#q{0}-panel" id="q{0}-tab " role="tab" aria-controls="q{0}" {2}>Q. {0}</a></li>';
 
-    var dcr_tab = getTelepScale(order, false);
-
-	// this will show which url was shown by in which question as their orther will be randomized
+	// this will show which url was shown by in which question as their order will be randomized
 	input_template= '<input id="Q{0}_URL" name="Q{0}_URL" type="hidden" value="{1}" />';
 
 	if (JSON.parse(config['randomizeRatingQuestions']))
@@ -1866,6 +1961,7 @@ function generate_rating_section(){
 
 	var i;
 	for (i = 0; i < urls.length; i++) {
+	    var dcr_tab = getTelepScale(false);
 		if (i==0){
 			$('#nav-tab-ul').append(dcr_nav_tab.f(i+1,'active', 'ria-selected="true"'));
 			$('#nav-tabContent-rating').append(dcr_tab.f(i+1, urls[i],'in active'));
@@ -2000,7 +2096,16 @@ function playVideo(video){
 	$("#velmnt_"+id).hide();
 
 	let parent = document.getElementById(id);
-	if (is_first_video){
+	//video_element.setAttribute("data-force_fullscreen", false);
+	// check if attribute data-force_fullscreen exist and is not false
+	var force_fullscreen = true
+	if (video.getAttribute("data-force_fullscreen") && video.getAttribute("data-force_fullscreen") == "false"){
+		console.log("data-force_fullscreen is false");
+		force_fullscreen = false;
+	}
+
+
+	if (is_first_video && force_fullscreen){
 		if (parent.requestFullscreen) {
 			parent.requestFullscreen();
 		  } else if (parent.msRequestFullscreen) {
@@ -2015,19 +2120,20 @@ function playVideo(video){
 	// set the listeners for when fullscreen is closed
 	previous_caller  =  tmp_caller_func;
 	tmp_caller_func = function (e){ fullscreen_closed(e,video, tmp_caller_func) };
-
-	if (parent.requestFullscreen) {
-		parent.removeEventListener("fullscreenchange",previous_caller);
-		parent.addEventListener("fullscreenchange",tmp_caller_func);
-	} else if (parent.msRequestFullscreen) {
-		parent.removeEventListener("onmsfullscreenchange",previous_caller);
-		parent.addEventListener("onmsfullscreenchange",tmp_caller_func);
-	} else if (parent.mozRequestFullScreen) {
-		parent.removeEventListener("mozfullscreenchange",previous_caller);
-		parent.addEventListener("mozfullscreenchange",tmp_caller_func);
-	} else if (parent.webkitRequestFullscreen) {
-		parent.removeEventListener("webkitfullscreenchange",previous_caller);
-		parent.addEventListener("webkitfullscreenchange",tmp_caller_func);
+	if (force_fullscreen){
+		if (parent.requestFullscreen) {
+			parent.removeEventListener("fullscreenchange",previous_caller);
+			parent.addEventListener("fullscreenchange",tmp_caller_func);
+		} else if (parent.msRequestFullscreen) {
+			parent.removeEventListener("onmsfullscreenchange",previous_caller);
+			parent.addEventListener("onmsfullscreenchange",tmp_caller_func);
+		} else if (parent.mozRequestFullScreen) {
+			parent.removeEventListener("mozfullscreenchange",previous_caller);
+			parent.addEventListener("mozfullscreenchange",tmp_caller_func);
+		} else if (parent.webkitRequestFullscreen) {
+			parent.removeEventListener("webkitfullscreenchange",previous_caller);
+			parent.addEventListener("webkitfullscreenchange",tmp_caller_func);
+		}
 	}
 
     if ($("#{0}".f(id)).hasClass('dcr')){
@@ -2081,6 +2187,11 @@ function playVideo_continue(id, video, is_dcr){
     	parent.classList.remove("bg");
 		$("#{0} .vcontainer".f(id)).show();
 	}
+	// check aspect ratio of video
+	let w = video.videoWidth;
+    let h = video.videoHeight;
+	let ratio = w/h;
+
     let oldH=video.getAttribute("height");
     let oldW=video.getAttribute("width");
     let fullW=screen.width;
@@ -2089,12 +2200,19 @@ function playVideo_continue(id, video, is_dcr){
     video.setAttribute("oldwidth",oldW);
     video.setAttribute("oldheight",oldH);
 	let scale_type = "";
+
+	var force_fullscreen = true
+	if (video.getAttribute("data-force_fullscreen") && video.getAttribute("data-force_fullscreen") == "false"){
+		console.log("data-force_fullscreen is false");
+		force_fullscreen = false;
+	}
+
 	if ($('#{0}'.f(id)).attr('data-scale')){
 		scale_type = $('#{0}'.f(id)).attr('data-scale');
 	}else{
 		scale_type = "no-scale";
 	}
-	if (scale_type=="max-height"){
+	if (scale_type=="max-height" && force_fullscreen){
 		console.log('max-height');
 		$( "#"+video.id ).closest( "td" ).removeClass("vtd");
 		let fullscreen_width = screen.width * window.devicePixelRatio;
@@ -2118,7 +2236,7 @@ function playVideo_continue(id, video, is_dcr){
 		video.setAttribute("height",new_h);
 		console.log('video-attributes w:'+video.getAttribute("width") +', h:'+video.getAttribute("height"));
 	}else{
-		console.log('NOT max-height');
+		console.log('NOT max-height or '+force_fullscreen);
 	}
     video.play();
     if (video.id.indexOf('video1_')==0){
@@ -2277,7 +2395,14 @@ function end_video(id, is_first_video){
 	if ($("#"+id).attr('data-onfinished')){
 		window[$("#"+id).attr('data-onfinished')](id);
 	}
-	document.exitFullscreen();
+	var force_fullscreen = true
+	if (video_element.getAttribute("data-force_fullscreen") && video_element.getAttribute("data-force_fullscreen") == "false"){
+		console.log("data-force_fullscreen is false");
+		force_fullscreen = false;
+	}
+	if (force_fullscreen){
+		document.exitFullscreen();
+	}
 
 	$("#velmnt_l_c_"+id).css('color','green');
 	$("#velmnt_l_d_"+id).css('color','green');
@@ -2296,6 +2421,31 @@ function end_video(id, is_first_video){
 		if (extra_duration>max_accepted_extra_playing_time_sec ){
 			maximum_extra_playing_time_reached(id);
 		}
+		// set object-fit for video_element to cover with withd and heigh = 100%
+		let parent = $('#video1_'+id).closest('span');		
+		console.log(parent);
+		let w = video_element.videoWidth;
+    	let h = video_element.videoHeight;
+		if (video_element.videoWidth > video_element.videoHeight){
+			// landscape			
+			parent.css("width", "100%");		
+		}else{
+			// portrait
+			parent.css("width", "70%");		
+		}
+		// set attribute data-no-full
+		//playVideo(video_element);
+		video_element.setAttribute("controls", true);
+		video_element.setAttribute("loop", true);
+		video_element.setAttribute("data-force_fullscreen", false);
+		//video_element.muted= true;
+		//video_element.play();
+		// play the video with id video1_t1
+		//var x = document.getElementById("video1_t1");
+		// play the video in 2 seconds
+		setTimeout(function(){ playVideo(video_element); }, 50);
+		
+		//console.log('video_element:::'+video_element);
 	}
 	if (!is_first_video){
 		// it is a two video case and now it is a second video
@@ -2465,7 +2615,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 	var i;
 	// Training section
 	for (i = 0; i < config['trainingUrls'].length; i++) {
-		$('input[name^="t{0}"]'.f(i+1)).on('change', alertForbiddenChange);
+		$('input[name^="t{0}"]:not([name^="t{0}_circles"]):not([name^="t{0}_triangles"])'.f(i+1)).on('change', alertForbiddenChange);
 	}
 	// Rating section
 	for (i = 0; i < config['questionUrls'].length; i++) {
@@ -2934,28 +3084,7 @@ function avoidAnsweringBeforeWatchingThrough(){
     </div>
     <div class="panel-collapse collapse in" id="instructionImp">
       <div class="panel-body">
-        <p>Almost ready to start. </p>
-        <p>Thank you for participating in this subjective study aimed at assessing the trustworthiness and realism of avatars in online meetings. Your feedback will help us understand how users perceive and interact with avatars. Please provide honest and thoughtful responses to the following questions:</p>
-        <ul>
-			<li> Single Video: You are given a video of avatar and asked a question about trustworthiness, realism, and being comfortable using/interacting with the avatar in online meetings. Your task is to rate the question in the scale 1 to 5.
-				<ul>
-					<li>5. Strongly agree</li>
-            		<li>4. Agree</li>
-            		<li>3. Neither agree nor disagree</li>
-            		<li>2. Disagree</li>
-            		<li>1. Strongly disagree</li>
-          		</ul>
-			</li>
-          	<li> Side by Side: You are given a side by side real video or a person and its avatar version, and your task is to compare the expression of the avatar to that of the real video and rate this comparison in the scale of 1 to 5.
-				<ul>
-					<li>5. Strongly agree</li>
-            		<li>4. Agree</li>
-            		<li>3. Neither agree nor disagree</li>
-            		<li>2. Disagree</li>
-            		<li>1. Strongly disagree</li>
-          		</ul>
-			</li>
-		</ul>
+		  {{cfg.instruction_html}}
       </div>
     </div>
   </div>

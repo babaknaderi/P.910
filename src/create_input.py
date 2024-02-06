@@ -39,7 +39,7 @@ def validate_inputs(df, method):
 
     required_columns_acrhr = ['pvs', 'src', 'block_matrix_url', 'circles', 'triangles', 'trapping_ans', 'trapping_pvs',
                               'gold_clips_pvs', 'gold_clips_ans']
-    if method in ['acr']:
+    if method in ['acr', 'tlp']:
         req = required_columns_acr
     elif method in ['dcr', 'ccr']:
         req = required_columns_dcr
@@ -584,7 +584,7 @@ def create_input_for_mturk(cfg, df, method, output_path):
     :param df:  row input, see validate_inputs for details
     :param output_path: path to output file
     """
-    if method in ['acr']:
+    if method in ['acr', 'tlp']:
         return create_input_for_acr(cfg, df, output_path)
     elif method in ['dcr', 'ccr']:
         return create_input_for_dcr(cfg, df, output_path)

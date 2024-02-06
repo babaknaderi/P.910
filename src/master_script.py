@@ -7,20 +7,18 @@
 """
 
 import argparse
-import os
 import asyncio
-import base64
+import configparser as CP
+import os
 import random
 import string
 
-
-import configparser as CP
 import pandas as pd
+from jinja2 import Template
 
 import create_input as ca
-
-from jinja2 import Template
 from azure_clip_storage import AzureClipStorage, TrappingSamplesInStore, GoldSamplesInStore
+import math
 
 
 def create_analyzer_cfg(cfg, template_path, out_path, n_HITs):
@@ -79,7 +77,8 @@ def get_rand_id(chars=string.ascii_uppercase + string.digits, N=10):
     return ''.join(random.choice(chars) for _ in range(N))
 
 
-async def create_hit_app_dcr(master_cfg, template_path, out_path, training_path, trap_path, general_cfg, n_HITs, is_ccr):
+async def create_hit_app_dcr(master_cfg, template_path, out_path, training_path, trap_path, general_cfg, n_HITs,
+                             is_ccr):
     """
     Create the hit_app (html file) corresponding to this project for dcr
     :param master_cfg:
@@ -95,24 +94,32 @@ async def create_hit_app_dcr(master_cfg, template_path, out_path, training_path,
     viewing_condition_cfg = master_cfg['viewing_condition']
 
     config = {}
-    config['cookie_name'] = hit_app_html_cfg['cookie_name'] if 'cookie_name' in hit_app_html_cfg else 'dcr_'+get_rand_id()
-    config['qual_cookie_name'] = hit_app_html_cfg['qual_cookie_name'] if 'qual_cookie_name' in hit_app_html_cfg else 'qual_'+get_rand_id()
-    config['allowed_max_hit_in_project'] = hit_app_html_cfg['allowed_max_hit_in_project'] if 'allowed_max_hit_in_project' in hit_app_html_cfg else  n_HITs
+    config['cookie_name'] = hit_app_html_cfg[
+        'cookie_name'] if 'cookie_name' in hit_app_html_cfg else 'dcr_' + get_rand_id()
+    config['qual_cookie_name'] = hit_app_html_cfg[
+        'qual_cookie_name'] if 'qual_cookie_name' in hit_app_html_cfg else 'qual_' + get_rand_id()
+    config['allowed_max_hit_in_project'] = hit_app_html_cfg[
+        'allowed_max_hit_in_project'] if 'allowed_max_hit_in_project' in hit_app_html_cfg else n_HITs
     config['contact_email'] = hit_app_html_cfg["contact_email"] if "contact_email" in cfg else "ic3ai@outlook.com"
-    config['internet_speed_Mbps'] = hit_app_html_cfg["internet_speed_Mbps"] if "internet_speed_Mbps" in hit_app_html_cfg else 80
-
+    config['internet_speed_Mbps'] = hit_app_html_cfg[
+        "internet_speed_Mbps"] if "internet_speed_Mbps" in hit_app_html_cfg else 80
 
     config['hit_base_payment'] = hit_app_html_cfg['hit_base_payment']
     config['quantity_hits_more_than'] = hit_app_html_cfg['quantity_hits_more_than']
     config['quantity_bonus'] = hit_app_html_cfg['quantity_bonus']
     config['quality_top_percentage'] = hit_app_html_cfg['quality_top_percentage']
-    config['quality_bonus'] = round(float(hit_app_html_cfg['quality_bonus']) + float(hit_app_html_cfg['quantity_bonus']), 2)
-    config['sum_quantity'] = round(float(hit_app_html_cfg['quantity_bonus']) + float(hit_app_html_cfg['hit_base_payment']), 2)
+    config['quality_bonus'] = round(
+        float(hit_app_html_cfg['quality_bonus']) + float(hit_app_html_cfg['quantity_bonus']), 2)
+    config['sum_quantity'] = round(
+        float(hit_app_html_cfg['quantity_bonus']) + float(hit_app_html_cfg['hit_base_payment']), 2)
     config['sum_quality'] = round(config['quality_bonus'] + float(hit_app_html_cfg['hit_base_payment']), 2)
 
-    config['min_screen_refresh_rate'] = viewing_condition_cfg['min_screen_refresh_rate'] if 'min_screen_refresh_rate' in viewing_condition_cfg else 30
-    config['min_device_resolution'] = viewing_condition_cfg['min_device_resolution'] if 'min_device_resolution' in viewing_condition_cfg else '{w: 1280, h:720}'
-    config['accepted_device'] = viewing_condition_cfg['accepted_device'] if 'accepted_device' in viewing_condition_cfg else '["PC"]'
+    config['min_screen_refresh_rate'] = viewing_condition_cfg[
+        'min_screen_refresh_rate'] if 'min_screen_refresh_rate' in viewing_condition_cfg else 30
+    config['min_device_resolution'] = viewing_condition_cfg[
+        'min_device_resolution'] if 'min_device_resolution' in viewing_condition_cfg else '{w: 1280, h:720}'
+    config['accepted_device'] = viewing_condition_cfg[
+        'accepted_device'] if 'accepted_device' in viewing_condition_cfg else '["PC"]'
     config['video_player'] = hit_app_html_cfg['video_player']
     if is_ccr:
         config['scale_points'] = int(hit_app_html_cfg['scale']) if 'scale' in hit_app_html_cfg else 7
@@ -166,7 +173,7 @@ async def create_hit_app_dcr(master_cfg, template_path, out_path, training_path,
             df_trap = await trapclipsstore.get_dataframe()
         # trapping clips are required, at list 1 clip should be available here
         if len(df_trap.index) < 1:
-            raise ("At least one trapping clip is required")
+            raise "At least one trapping clip is required"
         for _, row in df_trap.head(n=1).iterrows():
             trap_ref = row['trapping_src']
             trap_pvs = row['trapping_pvs']
@@ -205,25 +212,35 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
     hit_app_html_cfg = master_cfg['hit_app_html']
     viewing_condition_cfg = master_cfg['viewing_condition']
 
-    config = {}
+    config = dict()
+    config['debug'] = hit_app_html_cfg['debug'] if 'debug' in hit_app_html_cfg else 'false'
+    config['use_trapping_question'] = hit_app_html_cfg['use_trapping_question']
+    config['use_repeated_question'] = hit_app_html_cfg['use_repeated_question']
+    config['instruction_html'] = hit_app_html_cfg['instruction_html']
+    config['rating_questions'] = hit_app_html_cfg['rating_questions']
+    config['rating_answers'] = hit_app_html_cfg['rating_answers']
+
     config['cookie_name'] = hit_app_html_cfg['cookie_name'] if 'cookie_name' in hit_app_html_cfg else \
         f'acr_{get_rand_id()}'
     config['qual_cookie_name'] = hit_app_html_cfg['qual_cookie_name'] if 'qual_cookie_name' in hit_app_html_cfg else \
         f'qul_{get_rand_id()}'
 
     config['allowed_max_hit_in_project'] = hit_app_html_cfg['allowed_max_hit_in_project'] \
-        if 'allowed_max_hit_in_project' in hit_app_html_cfg else  n_HITs
-    config['contact_email'] = hit_app_html_cfg["contact_email"] if "contact_email" in hit_app_html_cfg else\
+        if 'allowed_max_hit_in_project' in hit_app_html_cfg else n_HITs
+    config['contact_email'] = hit_app_html_cfg["contact_email"] if "contact_email" in hit_app_html_cfg else \
         "ic3ai@outlook.com"
-    config['internet_speed_Mbps'] = hit_app_html_cfg["internet_speed_Mbps"] if "internet_speed_Mbps" in hit_app_html_cfg else 80
+    config['internet_speed_Mbps'] = hit_app_html_cfg[
+        "internet_speed_Mbps"] if "internet_speed_Mbps" in hit_app_html_cfg else 80
 
     config['hit_base_payment'] = hit_app_html_cfg['hit_base_payment']
     config['quantity_hits_more_than'] = hit_app_html_cfg['quantity_hits_more_than']
     config['quantity_bonus'] = hit_app_html_cfg['quantity_bonus']
     config['quality_top_percentage'] = hit_app_html_cfg['quality_top_percentage']
-    config['quality_bonus'] = round(float(hit_app_html_cfg['quality_bonus']) + float(hit_app_html_cfg['quantity_bonus']), 2)
-    config['sum_quantity'] = round(float(hit_app_html_cfg['quantity_bonus']) + float(hit_app_html_cfg['hit_base_payment']), 2)
-    config['sum_quality'] = round(config['quality_bonus'] + float(hit_app_html_cfg['hit_base_payment']),2 )
+    config['quality_bonus'] = round(
+        float(hit_app_html_cfg['quality_bonus']) + float(hit_app_html_cfg['quantity_bonus']), 2)
+    config['sum_quantity'] = round(
+        float(hit_app_html_cfg['quantity_bonus']) + float(hit_app_html_cfg['hit_base_payment']), 2)
+    config['sum_quality'] = round(config['quality_bonus'] + float(hit_app_html_cfg['hit_base_payment']), 2)
 
     config['min_screen_refresh_rate'] = viewing_condition_cfg[
         'min_screen_refresh_rate'] if 'min_screen_refresh_rate' in viewing_condition_cfg else 30
@@ -232,7 +249,7 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
     config['accepted_device'] = viewing_condition_cfg[
         'accepted_device'] if 'accepted_device' in viewing_condition_cfg else '["PC"]'
     config['scale_points'] = hit_app_html_cfg['scale'] if 'scale' in hit_app_html_cfg else 5
-
+    config['video_player'] = hit_app_html_cfg['video_player']
 
     config = {**config, **general_cfg}
 
@@ -243,7 +260,7 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
                                                                           create_input_cfg else 0
     rating_urls = []
     for i in range(0, n_clips):
-        rating_urls.append('${Q'+str(i)+'}')
+        rating_urls.append('${Q' + str(i) + '}')
     if n_traps > 1:
         raise Exception("More than 1 trapping question is not supported.")
     if n_traps == 1:
@@ -275,11 +292,32 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
     config['training_trap_ans'] = trap_ans
 
     # training urls
-    df_train = pd.read_csv(training_path)
     train_urls = []
-    for _, row in df_train.iterrows():
-        train_urls.append(row['training_pvs'])
-    train_urls.append(trap_url)
+    if not args.training_gold_clips:
+        df_train = pd.read_csv(training_path)
+        train_urls = []
+        for _, row in df_train.iterrows():
+            train_urls.append(row['training_pvs'])
+        train_urls.append(trap_url)
+
+    if args.training_gold_clips:
+        df_train = pd.read_csv(args.training_gold_clips)
+        gold_in_train = []
+        cols = list(df_train.columns.where(df_train.columns.str.endswith('_ans')).dropna())
+
+        for _, row in df_train.iterrows():
+            train_urls.append(row["training_pvs"])
+            data = {
+                'url': row["training_pvs"],
+            }
+            for col in cols:
+                if not math.isnan(row[col]):
+                    # coded_ans = get_encoded_gold_ans(row["training_clips"], row[col])
+                    prfx = col.split('_')[0]
+                    data[prfx] = {'ans': str(int(row[col])), 'msg': row[f"{prfx}_msg"],
+                                  'var': round(row[f"{prfx}_var"])}
+            gold_in_train.append(data.copy())
+        config["training_gold_clips"] = gold_in_train
 
     config['training_urls'] = train_urls
 
@@ -319,9 +357,10 @@ async def create_hit_app_acrhr(master_cfg, template_path, out_path, training_pat
 
     config['allowed_max_hit_in_project'] = hit_app_html_cfg['allowed_max_hit_in_project'] \
         if 'allowed_max_hit_in_project' in hit_app_html_cfg else n_HITs
-    config['contact_email'] = hit_app_html_cfg["contact_email"] if "contact_email" in hit_app_html_cfg else\
+    config['contact_email'] = hit_app_html_cfg["contact_email"] if "contact_email" in hit_app_html_cfg else \
         "ic3ai@outlook.com"
-    config['internet_speed_Mbps'] = hit_app_html_cfg["internet_speed_Mbps"] if "internet_speed_Mbps" in hit_app_html_cfg else 80
+    config['internet_speed_Mbps'] = hit_app_html_cfg[
+        "internet_speed_Mbps"] if "internet_speed_Mbps" in hit_app_html_cfg else 80
 
     config['hit_base_payment'] = hit_app_html_cfg['hit_base_payment']
     config['quantity_hits_more_than'] = hit_app_html_cfg['quantity_hits_more_than']
@@ -339,7 +378,6 @@ async def create_hit_app_acrhr(master_cfg, template_path, out_path, training_pat
         'accepted_device'] if 'accepted_device' in viewing_condition_cfg else '["PC"]'
     config['scale_points'] = hit_app_html_cfg['scale'] if 'scale' in hit_app_html_cfg else 5
 
-
     config = {**config, **general_cfg}
 
     # rating urls
@@ -349,7 +387,7 @@ async def create_hit_app_acrhr(master_cfg, template_path, out_path, training_pat
                                                                           create_input_cfg else 0
     rating_urls = []
     for i in range(0, n_clips):
-        rating_urls.append('${Q'+str(i)+'}')
+        rating_urls.append('${Q' + str(i) + '}')
     ref_urls = []
     for i in range(0, n_clips):
         ref_urls.append('${Q' + str(i) + '_R}')
@@ -411,7 +449,6 @@ async def prepare_csv_for_create_input(cfg, test_method, clips, gold, trapping, 
     Merge different input files into one dataframe
     :param test_method
     :param clips:
-    :param trainings:
     :param gold:
     :param trapping:
     :param general:
@@ -490,11 +527,17 @@ def get_path(test_method):
     dcr_ccr_cfg_template_path = os.path.join(os.path.dirname(__file__),
                                              'assets_master_script/result_parser_template.cfg')
 
-    method_to_template = { # (method, is_p831_fest)
+    #   for teleport
+    tlp_template_path_a = os.path.join(os.path.dirname(__file__), 'template/telep_template_h.html')
+    tlp_cfg_template_path = os.path.join(os.path.dirname(__file__),
+                                         'assets_master_script/result_parser_template.cfg')
+
+    method_to_template = {  # (method, is_p831_fest)
         ('acr'): (acr_template_path, acr_cfg_template_path),
         ('dcr'): (dcr_template_path, dcr_ccr_cfg_template_path),
         ('acr-hr'): (acrhr_template_path, acrhr_cfg_template_path),
         ('ccr'): (dcr_template_path, dcr_ccr_cfg_template_path),
+        ('tlp'): (tlp_template_path_a, tlp_cfg_template_path),
     }
 
     template_path, cfg_path = method_to_template[(test_method)]
@@ -506,7 +549,6 @@ def get_path(test_method):
 
 # checked
 async def main(cfg, test_method, args):
-
     # check assets
     general_path = os.path.join(os.path.dirname(__file__), 'assets_master_script/general.csv')
     assert os.path.exists(general_path), f"No csv file containing general infos in {general_path}"
@@ -521,13 +563,13 @@ async def main(cfg, test_method, args):
         clip_packing_strategy = cfg["create_input"]["clip_packing_strategy"].strip().lower()
         if clip_packing_strategy == "balanced_block":
             # condition pattern is needed
-            if not(("condition_pattern" in cfg["create_input"]) & ("condition_keys" in cfg["create_input"])):
+            if not (("condition_pattern" in cfg["create_input"]) & ("condition_keys" in cfg["create_input"])):
                 raise SystemExit("Error: by 'balanced_block' strategy, 'condition_pattern' and 'condition_keys' should "
                                  "be specified in the configuration.")
             if (',' in cfg["create_input"]["condition_keys"]) & ("block_keys" not in cfg["create_input"]):
                 raise SystemExit("Error: In 'balanced_block' strategy, 'block_keys' should be specified in "
                                  "configuration when 'condition_keys' contains more than one key.")
-        elif not(clip_packing_strategy == "random"):
+        elif not (clip_packing_strategy == "random"):
             raise SystemExit("Error: Unexpected value for 'clip_packing_strategy' in the configuration file")
 
     # create output folder *******
@@ -535,20 +577,21 @@ async def main(cfg, test_method, args):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     # prepare format
-    df = await prepare_csv_for_create_input(cfg, test_method, args.clips, args.gold_clips, args.trapping_clips, general_path)
+    df = await prepare_csv_for_create_input(cfg, test_method, args.clips, args.gold_clips, args.trapping_clips,
+                                            general_path)
 
     # create inputs
     print('Start validating inputs')
     ca.validate_inputs(df, test_method)
     print('... validation is finished.')
 
-    output_csv_file = os.path.join(output_dir, args.project+'_publish_batch.csv')
+    output_csv_file = os.path.join(output_dir, args.project + '_publish_batch.csv')
     n_HITs = ca.create_input_for_mturk(cfg['create_input'], df, test_method, output_csv_file)
 
     # check settings of quantity bonus
-    if not (int(cfg_hit_app["quantity_hits_more_than"]) in range(int(n_HITs/2),  int(n_HITs*2/3)+1)):
+    if not (int(cfg_hit_app["quantity_hits_more_than"]) in range(int(n_HITs / 2), int(n_HITs * 2 / 3) + 1)):
         print("\nWARNING: it seems that 'quantity_hits_more_than' not set properly. Consider to use a number in"
-                              f" the range of [{int(n_HITs/2)}, {int(n_HITs*2/3)}].\n")
+              f" the range of [{int(n_HITs / 2)}, {int(n_HITs * 2 / 3)}].\n")
 
     # Create general config for variables in the HTML template
     general_cfg = prepare_basic_cfg(df)
@@ -559,13 +602,13 @@ async def main(cfg, test_method, args):
     # ********************
     if test_method in ['dcr', 'ccr']:
         await create_hit_app_dcr(cfg, template_path, output_html_file, args.training_clips, args.trapping_clips,
-                                     general_cfg, n_HITs, test_method=='ccr')
-    elif test_method == 'acr':
+                                 general_cfg, n_HITs, test_method == 'ccr')
+    elif test_method in ['acr', 'tlp']:
         await create_hit_app_acr(cfg, template_path, output_html_file, args.training_clips, args.trapping_clips,
                                  general_cfg, n_HITs)
     elif test_method == 'acr-hr':
         await create_hit_app_acrhr(cfg, template_path, output_html_file, args.training_clips, args.trapping_clips,
-                                 general_cfg, n_HITs)
+                                   general_cfg, n_HITs)
     else:
         print('Method is not supported yet.')
 
@@ -581,7 +624,7 @@ if __name__ == '__main__':
     parser.add_argument("--project", help="Name of the project", required=True)
     parser.add_argument("--cfg", help="Configuration file, see master.cfg", required=True)
     parser.add_argument("--method", required=True,
-                        help="one of the test methods: 'acr', 'acr-hr', 'dcr', 'ccr'")
+                        help="one of the test methods: 'acr', 'acr-hr', 'dcr', 'ccr', 'tlp'")
     parser.add_argument("--clips", help="A csv containing urls of all clips to be rated in column 'pvs', in "
                                         "case of DCR it should also contain a column for 'src'")
     parser.add_argument("--gold_clips", help="A csv containing urls of all gold clips in column 'gold_clips_pvs' and "
@@ -589,17 +632,28 @@ if __name__ == '__main__':
                                              "is needed")
     parser.add_argument("--training_clips", help="A csv containing urls of all training clips to be rated in training "
                                                  "section. Columns 'training_pvs' and 'training_src' in case of DCR",
-                        required=True)
+                        required=False)
     parser.add_argument("--trapping_clips", help="A csv containing urls of all trapping clips. Columns 'trapping_pvc'"
                                                  "and 'trapping_ans'. In case of DCR also 'trapping_src'")
+    parser.add_argument(
+        "--training_gold_clips", default=None, help="A csv containing urls and details of gold training questions ",
+        required=False)
+
     # check input arguments
     args = parser.parse_args()
 
-    methods = ['acr', 'dcr', 'acr-hr', 'pc', 'ccr']
+    methods = ['acr', 'dcr', 'acr-hr', 'pc', 'ccr', 'tlp']
     test_method = args.method.lower()
     assert test_method in methods, f"No such a method supported, please select between {methods}"
     assert os.path.exists(args.cfg), f"No config file in {args.cfg}"
-    assert os.path.exists(args.training_clips), f"No csv file containing training clips in {args.training_clips}"
+
+    if args.training_clips:
+        assert os.path.exists(args.training_clips), f"No csv file containing training clips in {args.training_clips}"
+    elif args.training_gold_clips:
+        assert os.path.exists(
+            args.training_gold_clips), f"No csv file containing training_gold_clips in {args.training_gold_clips}"
+    else:
+        raise ValueError("No training or training_gold clips provided")
 
     cfg = CP.ConfigParser()
     cfg._interpolation = CP.ExtendedInterpolation()

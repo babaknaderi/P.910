@@ -109,7 +109,7 @@ def create_split_screens(source_folder, des):
             data.append({'video_clip': source_file_name,
                          'screen A': f'split_{w},{h}_a.mp4', 'screen B': f'split_{w},{h}_b.mp4' })
 
-    output_report = join(des, 'output_report.csv')
+    output_report = join(des, 'tlp_trapping_clips_a.csv')
     with open(output_report, 'w', newline='') as output_file:
         headers_written = False
         for f in data:
