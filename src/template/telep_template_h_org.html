@@ -102,7 +102,66 @@ border-bottom-left-radius: 5px;  border-bottom-right-radius: 5px;}
 </style>
 
 <script type="text/javascript">
+	var config ={
+	debug:"false",
+	cookieName:"acr_YM50IX3UU7",
+	qualificationCookieName:"qul_LHYW6EQZO3",
+	qualificationValidFor:43200,
+	internet_speed_Mbps:20,
+	allowedMaxHITsInProject:32,
+	forceRetrainingInHours:1,
+    showSetupEveryMinutes:30,
+    // could be 9 or 5
+    scale_points: 5,
+    // qualification
+	min_screen_refresh_rate: 30,
+	min_resolution:{w: 1920, h:1080},
+	// tablets will be included in PC, values:PC,MOBILE
+	device_accepted_device:["PC"],
+	viewing_distance:{
+		'img_path':'https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/distance/img3_{0}.jpg',
+		'base_id': '0',
+		'too_close':'3',
+		'normal':'5',
+		'too_far':'7'
+	},
+	block_matrix:{
+		'img': 'https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/block_matrix/m5/Yzo3X3Q6Ng==.jpg',
+		'circles': 9,
+		'triangles': 9,
+		'dummy':'dummy',
+		'max_tries': 4
+	},
 
+	plates:{
+		"plate3":29,
+		"plate4":5
+	},
+	useTrappingQuestion: 1,
+	useRepeatedQuestion: 1,
+	ratingQuestions: {"1": {"id": "trust", "text": "I would trust a person using this avatar"},
+"2": {"id": "realistic", "text": "This avatar is realistic"},
+"3": {"id": "comfortableusing", "text": "I would be comfortable using this avatar for work"},
+"4": {"id": "comfortableinteracting", "text": "I would be comfortable interacting with this avatar for work"},
+"5": {"id": "appropriate", "text": "The avatar is appropriate for work"},
+"6": {"id": "creepy", "text": "The avatar is creepy"},
+"7": {"id": "formal", "text": "The avatar looks formal (not cartoonish)"},
+"8": {"id": "like", "text": "I like the avatar"}},
+	ratingAnswers: [ ['5', 'Strongly agree'], ['4', 'Agree'], ['3', 'Neutral'], ['2', 'Disagree'], ['1', 'Strongly disagree']],
+	questionUrls: ['https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/04_29_2024/speak/standalone/livelink_45/Vishak_20231206_speak_livelink_V45.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/04_29_2024/speak/standalone/copresence_pro_ai_0/titus_ai_angle0.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/04_29_2024/speak/standalone/holo3d_0/martin_sentence_2024_02_20_0.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/04_29_2024/speak/standalone/avena_0/Avena_actor5_speak_0.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/04_29_2024/speak/standalone/audio2photoreal_0_zoom/GQS883_sample06_rep03_pred_camera_0_zoom.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/04_29_2024/speak/standalone/unreal_pro_45/LS_Bernice_Take_36_speak_Perf_Camera_m45_cropped.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/evaluations/04_29_2024/speak/standalone/unreal_pro_45/LS_Bryan_Take_9_speak_Perf_Camera_m45_cropped.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/trap/11_20_2023/speak/standalone/lex1_speak_real_5.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/gold/04_29_2024/g1/speak/standalone/cartoonish_human_male_segment1_zoom.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D'],
+    trainingUrls: ['https://teleportvideo.blob.core.windows.net/subjective-runs/training/11_20_2023/standalone/LS_Quchen_Take_39_speak_livelink.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/training/11_20_2023/standalone/LS_Jamie_Take_44_speak_livelink.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D', 'https://teleportvideo.blob.core.windows.net/subjective-runs/training/04_29_2024/standalone/cartoonish_human_female_segment3_zoom.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D'],
+	training_gold_clips: [{'url': 'https://teleportvideo.blob.core.windows.net/subjective-runs/training/11_20_2023/standalone/LS_Quchen_Take_39_speak_livelink.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D', 'trust': {'ans': '5', 'msg': 'Level of trust should be Strongly Agree', 'var': 1}, 'realistic': {'ans': '5', 'msg': 'Level of realism should be Strongly Agree', 'var': 1}, 'comfortableusing': {'ans': '5', 'msg': 'Level of comfort using avatar for work should be Strongly Agree', 'var': 1}, 'comfortableinteracting': {'ans': '5', 'msg': 'Level of comfort interacting should be Strongly Agree', 'var': 1}, 'appropriate': {'ans': '5', 'msg': 'Level of appropriate for work should be Strongly Agree', 'var': 4}, 'creepy': {'ans': '1', 'msg': 'Level of creepiness of Avatar should be Strongly Disagree', 'var': 1}, 'formal': {'ans': '5', 'msg': 'Strongly Agree to avatar looking formal', 'var': 1}, 'like': {'ans': '5', 'msg': 'Any selection is acceptable', 'var': 4}}, {'url': 'https://teleportvideo.blob.core.windows.net/subjective-runs/training/11_20_2023/standalone/LS_Jamie_Take_44_speak_livelink.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D', 'trust': {'ans': '5', 'msg': 'Level of trust should be Strongly Agree', 'var': 1}, 'realistic': {'ans': '5', 'msg': 'Level of realism should be Strongly Agree', 'var': 1}, 'comfortableusing': {'ans': '5', 'msg': 'Level of comfort using avatar for work should be Strongly Agree', 'var': 1}, 'comfortableinteracting': {'ans': '5', 'msg': 'Level of comfort interacting should be Strongly Agree', 'var': 1}, 'appropriate': {'ans': '5', 'msg': 'Level of appropriate for work should be Strongly Agree', 'var': 4}, 'creepy': {'ans': '1', 'msg': 'Level of creepiness of Avatar should be Strongly Disagree', 'var': 1}, 'formal': {'ans': '5', 'msg': 'Strongly Agree to avatar looking formal', 'var': 1}, 'like': {'ans': '5', 'msg': 'Any selection is acceptable', 'var': 4}}, {'url': 'https://teleportvideo.blob.core.windows.net/subjective-runs/training/04_29_2024/standalone/cartoonish_human_female_segment3_zoom.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D', 'trust': {'ans': '1', 'msg': 'Level of trust should be Strongly Disagree', 'var': 4}, 'realistic': {'ans': '1', 'msg': 'Level of realism should be Strongly Disagree', 'var': 1}, 'comfortableusing': {'ans': '1', 'msg': 'Level of comfort using avatar for work should be Strongly Disagree', 'var': 4}, 'comfortableinteracting': {'ans': '1', 'msg': 'Level of comfort interacting should be Strongly Disagree', 'var': 4}, 'appropriate': {'ans': '1', 'msg': 'Level of appropriate for work should be Strongly Disagree', 'var': 4}, 'creepy': {'ans': '5', 'msg': 'Level of creepiness of Avatar should be Strongly Agree', 'var': 4}, 'formal': {'ans': '1', 'msg': 'Strongly Disagree to avatar looking formal', 'var': 1}, 'like': {'ans': '1', 'msg': 'Any selection is acceptable', 'var': 4}}],
+    knownQuestionInTrainingUrl:"https://teleportvideo.blob.core.windows.net/subjective-runs/trap/11_20_2023/speak/standalone/Amit_20231109_speak_Avanti_clipped_2.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D",
+    knownQuestionInTrainingAns: "2",
+
+    knownQuestionUrl:"https://teleportvideo.blob.core.windows.net/subjective-runs/trap/11_20_2023/speak/standalone/lex1_speak_real_5.mp4?sv=2023-01-03&st=2024-04-30T02%3A38%3A10Z&se=2024-05-31T02%3A38%3A00Z&sr=c&sp=rl&sig=0sEdrBcfP96Mfbvwhr9nUzcn5Xwo%2B2hwY43KA3xyH%2Bk%3D",
+    knownQuestionAns: "5",
+    randomizeTrainingQuestions:"true",
+    randomizeRatingQuestions:"true",
+    emailAddress: "ic3ai@outlook.com"
+}
+
+/*
 var config ={
 	debug:"{{cfg.debug}}",
 	cookieName:"{{cfg.cookie_name}}",
@@ -154,6 +213,7 @@ var config ={
     randomizeRatingQuestions:"true",
     emailAddress: "{{cfg.contact_email}}"
 }
+*/
 /*
 var config ={
 	debug:"true",
