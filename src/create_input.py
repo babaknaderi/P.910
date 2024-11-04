@@ -325,8 +325,12 @@ def create_input_for_acr(cfg, df, output_path):
         if int(cfg['number_of_gold_clips_per_session']) > 1:
             print("more than one gold_clip is not supported for now - continue with 1")
         n_gold_clips = n_sessions
-        gold_clip_source = df['gold_clips_pvs'].dropna()
-        gold_clip_ans_source = df['gold_clips_ans'].dropna()
+        tmp = df[['gold_clips_pvs', 'gold_clips_ans']].copy()
+        tmp.dropna(inplace=True)
+        tmp = tmp.sample(n=n_gold_clips, replace=True)
+
+        gold_clip_source = tmp['gold_clips_pvs'].dropna()
+        gold_clip_ans_source = tmp['gold_clips_ans'].dropna()
 
         full_gold_clips = np.tile(gold_clip_source.to_numpy(),
                                   (n_gold_clips // gold_clip_source.count()) + 1)[:n_gold_clips]

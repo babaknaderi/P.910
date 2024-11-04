@@ -152,7 +152,8 @@ var config ={
     knownQuestionAns: "${TP_ANS}",
     randomizeTrainingQuestions:"true",
     randomizeRatingQuestions:"true",
-    emailAddress: "{{cfg.contact_email}}"
+    emailAddress: "{{cfg.contact_email}}",
+	is_template_b: "{{cfg.is_template_b}}",
 }
 
 //---- for video player
@@ -608,7 +609,12 @@ function loadTextPlaceHolders(){
 	$('.question_number_training').html(config['trainingUrls'].length);
 	$('.question_number').html(config['questionUrls'].length);
 	$('.instruction_device').html(config['device_accepted_device'].join());
-
+	if (config['is_template_b']=="true"){
+		place_holder_task = "Imagine you want to participate in <b>an online meeting related to your work</b>. You or your counterpart will be represented by an avatar. For each question, please watch the provided video. On <b>left</b> there is an avatar representation whereas <b>on right there is the real video</b>. Provide your opinion on <b>how well the provided avatar represents the facial expression of person in the video</b>.";
+		place_holder_question = "Watch the video with <b>avatar on left</b> and <b>real video on right</b>. How well does the avatar represent the person and their facial expression in the video?";
+		$('.task_description').html(place_holder_task);
+		$('.rating_question_text').html(place_holder_question);
+	}
 }
 
 /*
@@ -1683,8 +1689,8 @@ function get_a_tp(){
 	tps = [
 		{'id':'tp', 'tp_id':'lessthan5', 'text': 'I am less than five <b>years</b> old.'},
 		{'id':'tp', 'tp_id':'cantreadenglish', 'text': 'I cannot read text in <b>English</b>.'},
-		{'id':'tp', 'tp_id':'hundred', 'text': 'There are <b>hundered</b> letters in the English alphabet.'},
-		{'id':'tp', 'tp_id':'lesshundred', 'text': 'There are less than <b>hundered</b> letters in the English alphabet.'},
+		{'id':'tp', 'tp_id':'hundred', 'text': 'There are <b>one-hundered</b> letters in the English alphabet.'},
+		{'id':'tp', 'tp_id':'lesshundred', 'text': 'There are <b>less than hundered</b> letters in the English alphabet.'},
 		{'id':'tp', 'tp_id':'speling', 'text': 'It is <b>correct</b> that the word "English" is spelled as "Engle".'},	
 		{'id':'tp', 'tp_id':'olderthan5', 'text': 'I am older than five <b>years</b> old.'},
 		{'id':'tp', 'tp_id':'canreadenglish', 'text': 'I can read text in <b>English</b>.'},
@@ -1702,7 +1708,7 @@ function getTelepScale(is_training){
     var overhead = '<div class="tab-pane fade {2}" id="'+p+'{0}-panel" role="tabpanel" aria-labelledby="'+p+'{0}-tab"><p></p>'+
 	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
 	//'<p style="margin-top:10px;">{0}. Watch the following video clip and specify how much you agree with each statement? </p> <div class="row"> <p align="center"> '+
-		'<p style="margin-top:10px;">{0}. Imagine you want to participate in <b>an online meeting related to your work</b>. In that meeting, <b>you or your counterpart</b> will be represented as shown in the following video. </br>Watch the video clip and specify how much you agree with each statement.</p> <div class="row"> <p align="center"> '+
+		'<p style="margin-top:10px;" class="rating_question_text">{0}. Imagine you want to participate in <b>an online meeting related to your work</b>. In that meeting, <b>you or your counterpart</b> will be represented as shown in the following video. </br>Watch the video clip and specify how much you agree with each statement.</p> <div class="row"> <p align="center"> '+
 	'<span class="velmnt" id="'+p+'{0}" data-src-clip="{1}" data-onfinished="playedVideoTraining" data-scale="{{cfg.video_player}}"></span> </p> '+	
 	' </div> </div> <div class="col-sm-2"></div> </div> ' +
 	//'<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+'<fieldset id="fieldset_Q{0}" class="trainingFieldset" title="">'+
@@ -3114,7 +3120,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 			<div  class="panel-collapse collapse in" id="trainingS">
 				<div class="panel-body">
 
-					<p>Imagine you want to participate in an <b>online meeting related to your work</b>. In that meeting, <b>you or your counterpart</b> will be represented as shown in the following videos. For each case, watch the video clip carefully and specify how much you agree with each statement. </p>
+					<p class="task_description">Imagine you want to participate in an <b>online meeting related to your work</b>. In that meeting, <b>you or your counterpart</b> will be represented as shown in the following videos. For each case, watch the video clip carefully and specify how much you agree with each statement. </p>
 				<p> 
 
 				   <p> <b>Note</b> that the scale will be activated when the corresponding video clip played until the end. </p>
@@ -3159,8 +3165,8 @@ function avoidAnsweringBeforeWatchingThrough(){
 				<h3 class="panel-title">Ratings</h3>
 			</div>
 			<div class="panel-body">
-				<p> Please watch the following <b class="question_number"> 0 </b> clips following the instruction.</p>
-				<p>Imagine you want to participate in an <b>online meeting related to your work</b>. In that meeting, <b>you or your counterpart</b> will be represented as shown in the following videos. For each case, watch the video clip carefully and specify how much you agree with each statement. </p>
+				<p> Please watch the following <b class="question_number"> 0 </b> clips.</p>
+				<p class="task_description">Imagine you want to participate in an <b>online meeting related to your work</b>. In that meeting, <b>you or your counterpart</b> will be represented as shown in the following videos. For each case, watch the video clip carefully and specify how much you agree with each statement. </p>
 
 				   <p> <b>Note</b> that the scale will be activated when the corresponding video clip played until the end. </p>
 				   <p> If you see a message follow the instruction as given in the message.</p>

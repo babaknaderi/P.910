@@ -219,6 +219,7 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
     config['instruction_html'] = hit_app_html_cfg['instruction_html']
     config['rating_questions'] = hit_app_html_cfg['rating_questions']
     config['rating_answers'] = hit_app_html_cfg['rating_answers']
+    config['is_template_b'] = hit_app_html_cfg['is_template_b']
 
     config['cookie_name'] = hit_app_html_cfg['cookie_name'] if 'cookie_name' in hit_app_html_cfg else \
         f'acr_{get_rand_id()}'

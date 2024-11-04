@@ -6,14 +6,14 @@ from azure.storage.blob import ContainerClient
 
 TMP_FOLDER = r'C:\Temp\teleport'
 RATING_SAS = ''
-subjective_SAS = ''
-cq_storage_SAS = ''
+subjective_SAS = r''
+cq_storage_SAS = r''
 
 # config relative locations in container: https://teleportvideo.blob.core.windows.net/subjective-runs/
-gold_relative_url = 'configs/master/12062023/tlp_gold_clips_b.csv'
-tran_relative_url = 'configs/master/12062023/tlp_training_clips_b.csv'
-trap_relative_url = 'configs/master/12062023/tlp_trapping_clips_b.csv'
-config_relative_url = 'configs/master/12062023/master_b.cfg'
+gold_relative_url = None
+tran_relative_url = None
+trap_relative_url = None
+config_relative_url = None
 
 # blob clients
 subjective_base_url = 'https://teleportvideo.blob.core.windows.net/subjective-runs/'
@@ -23,6 +23,20 @@ cq_storage_client = ContainerClient.from_container_url(cq_storage_base_url, cred
 
 overwrite = False
 
+def set_config_relative_urls(is_template_b):
+    global gold_relative_url, tran_relative_url, trap_relative_url, config_relative_url
+    if is_template_b:
+        # Template B
+        gold_relative_url = 'configs/master/09262024/tlp_gold_clips_b.csv'
+        tran_relative_url = 'configs/master/09262024/tlp_training_clips_b.csv'
+        trap_relative_url = 'configs/master/09262024/tlp_trapping_clips_b.csv'
+        config_relative_url = 'configs/master/09262024/master_b.cfg'
+    else:
+        # template A
+        gold_relative_url = 'configs/master/12062023/tlp_gold_clips.csv'
+        tran_relative_url = 'configs/master/12062023/tlp_training_clips.csv'
+        trap_relative_url = 'configs/master/12062023/tlp_trapping_clips.csv'
+        config_relative_url = 'configs/master/12062023/master.cfg'
 
 def create_local_config(folder, relative_url, version):
     blob = subjective_client.get_blob_client(relative_url)
@@ -71,6 +85,7 @@ def create_evaluation_folder(folder, input_csv, version, output_csv):
 
     output_csv_file = os.path.join(folder, output_csv)
     eval_csv.to_csv(output_csv_file, index=False)
+    print(output_csv)
     subjective_client.get_blob_client('evaluations/' + version + '/mturk/configs/' + output_csv).upload_blob(
         open(output_csv_file, 'rb'), overwrite=overwrite)
 
@@ -140,9 +155,11 @@ def merge_clips_into_side_by_side(merge_csv_file):
     rating_source.to_csv(merge_csv_file.replace('.csv', '_side_by_side.csv'), index=False)
 
 
-csv_file = r'C:\github\P.910\new_study\rating_source_b.csv'
-eval_ver = '12_07_2023'
-csv_output = 'tlp_rating_clips_b.csv'
+csv_file = r'C:\data\studies\teleport\template_b\rating_source_b.csv'
+is_template_b = True
+eval_ver = '09_26_2024'
+csv_output = 'clips.csv'
+set_config_relative_urls(is_template_b)
 create_evaluation(csv_file, eval_ver, csv_output)
 
 ## merge clips side by side for subjective evaluation using a csv file
