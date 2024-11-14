@@ -39,7 +39,7 @@ def validate_inputs(df, method):
 
     required_columns_acrhr = ['pvs', 'src', 'block_matrix_url', 'circles', 'triangles', 'trapping_ans', 'trapping_pvs',
                               'gold_clips_pvs', 'gold_clips_ans']
-    if method in ['acr']:
+    if method in ['acr', 'tlp']:
         req = required_columns_acr
     elif method in ['dcr', 'ccr']:
         req = required_columns_dcr
@@ -325,8 +325,12 @@ def create_input_for_acr(cfg, df, output_path):
         if int(cfg['number_of_gold_clips_per_session']) > 1:
             print("more than one gold_clip is not supported for now - continue with 1")
         n_gold_clips = n_sessions
-        gold_clip_source = df['gold_clips_pvs'].dropna()
-        gold_clip_ans_source = df['gold_clips_ans'].dropna()
+        tmp = df[['gold_clips_pvs', 'gold_clips_ans']].copy()
+        tmp.dropna(inplace=True)
+        tmp = tmp.sample(n=n_gold_clips, replace=True)
+
+        gold_clip_source = tmp['gold_clips_pvs'].dropna()
+        gold_clip_ans_source = tmp['gold_clips_ans'].dropna()
 
         full_gold_clips = np.tile(gold_clip_source.to_numpy(),
                                   (n_gold_clips // gold_clip_source.count()) + 1)[:n_gold_clips]
@@ -584,7 +588,7 @@ def create_input_for_mturk(cfg, df, method, output_path):
     :param df:  row input, see validate_inputs for details
     :param output_path: path to output file
     """
-    if method in ['acr']:
+    if method in ['acr', 'tlp']:
         return create_input_for_acr(cfg, df, output_path)
     elif method in ['dcr', 'ccr']:
         return create_input_for_dcr(cfg, df, output_path)

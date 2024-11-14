@@ -75,7 +75,7 @@ border-bottom-left-radius: 5px;  border-bottom-right-radius: 5px;}
 .scale {font-size: 100%; padding:0px}
 .scale td { text-align: left; padding:0px;}
 .scale label { display:block;}
-.scale .c { text-align: center;}
+.scale .c { text-align: center; vertical-align: middle;}
 .table > tbody > tr > td {padding:0;}
 
 .bg1 {background-image: url("https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/clips_a.png");}
@@ -90,10 +90,7 @@ border-bottom-left-radius: 5px;  border-bottom-right-radius: 5px;}
   height: 120px;
   animation: spin 2s linear infinite;
 }
-.questionnaire tr:nth-child(2n) {
-  background-color: #cacaca;
-}
-.questionnaire{font-size:0.9em;}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -102,56 +99,6 @@ border-bottom-left-radius: 5px;  border-bottom-right-radius: 5px;}
 </style>
 
 <script type="text/javascript">
-/*
-var config ={
-	debug:"true",
-	cookieName:"tp_TMG7G9EY7W",
-	qualificationCookieName:"qual_tp_CAR7LO5CY2",
-	qualificationValidFor:43200,
-	internet_speed_Mbps:80,
-	allowedMaxHITsInProject:80,
-	forceRetrainingInHours:1,
-    showSetupEveryMinutes: 45,
-    // could be 9 or 5
-    scale_points: 5,
-    // qualification
-	min_screen_refresh_rate: 10,
-	min_resolution:{w: 1920, h:1080},
-	// tablets will be included in PC, values:PC,MOBILE
-	device_accepted_device:["PC"],
-	viewing_distance:{
-		'img_path':'https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/distance/img3_{0}.jpg',
-		'base_id': '0',
-		'too_close':'3',
-		'normal':'5',
-		'too_far':'7'
-	},
-	block_matrix:{
-		'img': 'https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/block_matrix/m5/Yzo4X3Q6Mg==.jpg',
-		'circles': 10.0,
-		'triangles': 5.0,
-		'dummy':'dummy',
-		'max_tries': 4
-	},
-
-	plates:{
-		"plate3":29,
-		"plate4":5
-	},
-	questionUrls: ['https://p910.azureedge.net/video/MLVC_FRVQA_dataset_cs_fmt/29/src/1e3224380c76fb4cad0a8d3a7c74a8d5bf0688d13df15f23acd2512de4374cb4_1920x1080_24fps.mp4'],
-    trainingUrls: ['https://mlvideo.blob.core.windows.net/video/tmp/tmp_shared/video.mp4'],
-	
-	is_ccr: 'false',
-
-    knownQuestionInTrainingUrl:"https://audiosamplesp808.blob.core.windows.net/p910-assets/sample_videos/tmp/04a1274a93ec6a36ad2c1cb5eb83c3bdf2cf05bbe01c70a8ca846a7f9fa4b550_-3.mp4",
-    knownQuestionInTrainingAns: "1",
-
-    knownQuestionUrl:"https://audiosamplesp808.blob.core.windows.net/p910-assets/sample_videos/tmp/8cbafab285e74614f10d3a8bf9ee94434eacae6332f5f10fe1e50bfe5de9ec33_-3.mp4",
-    knownQuestionAns: "1",
-    randomizeTrainingQuestions:"true",
-    randomizeRatingQuestions:"true",
-    emailAddress: "ic3ai@outlook.com"
-} */
 
 
 var config ={
@@ -189,9 +136,14 @@ var config ={
 		"plate3":29,
 		"plate4":5
 	},
-	numberOfRatingQuestions: {{cfg.number_of_rating_questions}},
+	fullyRandomizeVideosAndItems: "true",
+	useTrappingQuestion: {{cfg.use_trapping_question}},
+	useRepeatedQuestion: {{cfg.use_repeated_question}},
+	ratingQuestions: {{cfg.rating_questions}},
+	ratingAnswers: {{cfg.rating_answers}},
 	questionUrls: {{cfg.rating_urls}},
     trainingUrls: {{cfg.training_urls}},
+	training_gold_clips: {{cfg.training_gold_clips}},
     knownQuestionInTrainingUrl:"{{cfg.training_trap_urls}}",
     knownQuestionInTrainingAns: "{{cfg.training_trap_ans}}",
 
@@ -201,6 +153,7 @@ var config ={
     randomizeRatingQuestions:"true",
     emailAddress: "{{cfg.contact_email}}"
 }
+
 
 //---- for video player
 max_accepted_extra_playing_time_sec = 2.5;
@@ -401,7 +354,7 @@ function range(size, startAt = 1) {
 const Hide_HIT_REASON = Object.freeze({"MAX_ACHIVED":1, "QUALIFICATON":2, "QUALIFICATION_FAILED_NOW":3, "AUTO_TEST_FAILED":4})
 
 /*
-	Initializing the page: generate and hide sections depending on the cookies value
+	Initializing the page: generate and hide sections depending to the cookies value
 */
 $(function() {
 	try{
@@ -420,13 +373,8 @@ $(function() {
 		add_distance_test();
 		initializeSetup();
 
+		load_questions();
 		loadTextPlaceHolders();
-        // set the rating question order
-		r = range(config['numberOfRatingQuestions']);
-		r = shuffle(r);
-		order = r.join('_');
-        $("#rating_question_order").val(order);
-
 		generate_training_section();
 		generate_rating_section();
 		avoidAnsweringBeforeWatchingThrough();
@@ -503,14 +451,12 @@ $(function() {
 		cookie_debug_status=cookie_debug_status+"Counter:"+howManyHITsAnswered+"*";
 		addBrowserInfo(cookie_debug_status);
 
-		if (config['debug']== 'true'){
-				activate_calibration_section(true);
-				activate_setup_section(true);
-				activate_training_section(true);
-				activate_rating_section(true);
-			}
+
+
 	}catch(err){
-		console.error(err);
+		// print the error
+		console.log("Error: "+err.name);
+		console.log("Error: "+err.message);
 		recordError(err.name,err.message, true);
 	}
 });
@@ -519,7 +465,7 @@ var loading_page_error = false;
 var first_time_hardware_failed = false;
 /*
 	Disable the HIT and show a proper message.
-	Depending on the reason show a proper message as well.
+	Depending to the reason show a proper message as well.
 */
 function disableTheHIT(c){
 	loading_page_error = true;
@@ -652,8 +598,8 @@ function loadTextPlaceHolders(){
 		$('.training_time').html(config['forceRetrainingInHours']+" hour" );
 	else
 		$('.training_time').html(config['forceRetrainingInHours']+" hours" );
-	$('.question_number_training').html(config['trainingUrls'].length);
-	$('.question_number').html(config['questionUrls'].length);
+	$('.question_number_training').html(config['trainingUrls'].length * Object.keys(ratingQuestions).length);
+	$('.question_number').html(config['questionUrls'].length * Object.keys(ratingQuestions).length);
 	$('.instruction_device').html(config['device_accepted_device'].join());
 
 }
@@ -675,10 +621,9 @@ function isQualificationDone(){
 	if(!$("input[name='7_plate3']").val()) return;
 	if(!$("input[name='7_plate4']").val()) return;
 
-	if(!$("select[name='9_avatar_usage'] option:selected").val()) return;
+	if(!$("select[name='11_avatar_usage'] option:selected").val()) return;
 	if(!$("select[name='10_online_meetings'] option:selected").val()) return;
-	if(!$("select[name='11_video_meeting'] option:selected").val()) return;
-
+	if(!$("select[name='12_video_meeting'] option:selected").val()) return;
 	if (performed_visual_acuity_test)
 		validateQualificationAnswer();
 }
@@ -1166,7 +1111,7 @@ function check_resolution(){
 	let w = Math.floor(window.screen.width * window.devicePixelRatio);
 	let h = Math.floor(window.screen.height * window.devicePixelRatio);
 	console.log("screen is {0}x{1}".f(w,h));
-	$("#device_resolution").val("{0}x{1}".f(w,h));
+	$("#device_resolution").val("{0}x{1}({2})".f(w,h,window.devicePixelRatio));
 	if (w>= config.min_resolution.w && h>= config.min_resolution.h){
 		return true;
 	}
@@ -1462,17 +1407,28 @@ var trainingStimulusPlayed;
   config.forceRetrainingInHours
 */
 function playedVideoTraining(id){
-	let id_num= id.substring(1);
+	let id_num= id.split('-')[0].split("T")[1];
 	played= $("#video_n_finish_{0}".f(id)).val();
-	$('input[name^="{0}"]'.f(id)).off('change');
+	$('input[name="{0}"]'.f(id)).off('change');
 	eval("trainingStimulusPlayed["+id_num+"-1]=1;");
 	if (trainingStimulusPlayed.reduce(getSum, 0) ==  trainingStimulusPlayed.length){
 		createCookie(config['cookieName']+"_training","un_important",config['forceRetrainingInHours']*60);
 	}
 	if ($('span[id="'+id+'"]').attr("data-src-clip") == config['knownQuestionInTrainingUrl']){
-		element = $('input[name^="t{0}"]'.f(id_num));
+		element = $('input[name="t{0}"]'.f(id_num));
 		element.unbind();
 		element.on('change', onValueChangeForTpQuestionInTraining);
+	}
+	training_clip = getGoldQuestionInTrainingInfo($('span[id="' + id + '"]').attr("data-src-clip"));
+	if (training_clip != null) {
+		console.log("was the gold: "+id);
+		element = $('input[name="'+id+'"]');
+		element.unbind('change');
+		// check the item_name
+		item_name = $('input[name="'+id.toUpperCase() +'_ITEM"]').val();
+		element.on('click', function () {
+			return onValueChangeForGoldQuestionInTraining(this, training_clip['url'], training_clip[item_name])
+		});
 	}
 }
 
@@ -1501,8 +1457,6 @@ function getSum(total, num) {
 function onValueChangeForTpQuestionInTraining(){
 	if(!('knownQuestionInTrainingAns' in config))
 		return;
-    // for now
-    return;
 	if ($( this ).val()  != config['knownQuestionInTrainingAns']){
 		alert('Error: your answer does not seem to be correct. Watch the video again carefully and follow the instruction?');
 		$(this).prop('checked', false);
@@ -1531,17 +1485,17 @@ function onValueChangeForTpQuestion(){
 function playedVideoQ(id){
 	console.log("playedVideoQ "+id);
 	isAnyParallelSession();
-	let id_num= id.substring(1);
+	let id_num= id.split('-')[0].split('Q')[1];
 	played= $("#video_n_finish_{0}".f(id)).val();
 	if (played== 0 )return;
 	console.log("playedVideoQ  continue");
 
 	if ($('span[id="'+id+'"]').attr("data-src-clip") == config['knownQuestionUrl']){
-		element = $('input[name^="qQ0}"]'.f(id_num));
+		element = $('input[name="q{0}"]'.f(id_num));
 		element.unbind();
 		element.on('change', onValueChangeForTpQuestion);
 	}else{
-		$('input[name^="Q{0}_"]'.f(id_num)).off('change');
+		$('input[name="q{0}"]'.f(id_num)).off('change');
 		console.log("playedVideoQ remove change listener");
 		// check if already this HIT is counted
 		if (!hitCounterIncreased){
@@ -1576,6 +1530,9 @@ function showPreviousQuestionInRatingSection(){
 	if (id+1<=count)
 		$('#next-rating').removeClass('disabled');
 }
+
+
+
 </script>
 <script type="text/javascript">
 //----- All methods for hiding/showing sections
@@ -1696,82 +1653,128 @@ function on_setup_performed(status){
 	activate_rating_section(true);
 
 }
+
+
+
+
 </script>
 <script type="text/javascript">
 
-function getRatingSection(questionType, questionName, question, answers){
-	html_section = '<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
-	'<fieldset id="fieldset_'+questionType+'{0}_'+questionName+'" class="trainingFieldset" title="">'+
-    '<p style="margin-top:10px;">'+question+'</p>'+
-    '<table class="table md scale" cellspacing="0" cellpadding="0"><tbody>';
-	for (const [key, value] of answers) {
-			html_section += '<tr><td><div class="radio" ><label > <input type="radio" name="'+questionType+'{0}_'+questionName+'" value="'+key+'">'+value+'</label></div></td><td class="c">'+key+'</td></tr>';
+/*
+	Input could be 5 or 9
+*/
+var ratingQuestions = {};
+var currentElementForTrial = [];
+var elements = [[]];
+var unansweredQuestions = new Set();
+
+// for training
+var currentElementForTrialTraining = [];
+var elementsTraining = [[]];
+
+
+function load_questions(){
+
+	// shuffle the questions in ratingQuestions but keep id the same
+	ratingQuestions = JSON.parse(JSON.stringify(config['ratingQuestions']));
+
+	// shuffle the questions in ratingQuestions but keep id the same
+	for (i = 1; i <= Object.keys(ratingQuestions).length; i++) {
+		var randomNum = Math.floor(Math.random() * Object.keys(ratingQuestions).length +1 )
+		var tmpQuestion = ratingQuestions[i.toString()];
+		ratingQuestions[i.toString()] = ratingQuestions[randomNum.toString()];
+		ratingQuestions[randomNum.toString()] = tmpQuestion;
+	
+	}
+}
+
+
+var unansweredQuestionsTraining = new Set();
+
+//----------------------- training with response
+
+/**
+ * Check is the givebn url belongs to a trapping questionin training section, If so returns its info, otherwise null-
+ * @param {*} element
+ **/
+ function getGoldQuestionInTrainingInfo(url){
+	console.log('*** check getGoldQuestionInTrainingInfo');
+	console.log(url);
+	// check if training_gold_clips is in config
+	if (!('training_gold_clips' in config))
+		return null;
+
+	training_keys = config['training_gold_clips']
+	for (let index = 0; index < training_keys.length; index++) {
+		obj = training_keys[index];
+		if (obj['url'] == url) {
+			return obj;
 		}
-    html_section +='</tbody></table></fieldset><p></p></div> <div class="col-sm-3"></div></div>' ;
+	}
+	return null;
+}
 
-	return html_section;
-};
-
-function getTelepScale(order, is_training){
-	let p ='Q';
-	if (is_training){
-         p = 'T';
-    }
-
-    var overhead = '<div class="tab-pane fade {2}" id="'+p+'{0}-panel" role="tabpanel" aria-labelledby="'+p+'{0}-tab"><p></p>'+
-	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
-	'<p style="margin-top:10px;">{0}. Watch the following video clip and answer to the following questions? </p> <div class="row"> <p align="center">'+
-	'<span class="velmnt" id="'+p+'{0}" data-src-clip="{1}" data-onfinished="playedVideoTraining" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>';
-
-    answers = [[5,'Strongly agree'], [4,'Agree'], [3,'Neutral'], [2,'Disagree'], [1,'Strongly disagree']];
-
-    var s_trust = getRatingSection(p,'trust', 'I would trust a person using this avatar', answers);
-    var s_realistic = getRatingSection(p, 'realistic', 'This avatar is realistic', answers);
-    var s_comfortableusing = getRatingSection(p, 'comfortableusing', 'I would be comfortable using this avatar for work', answers);
-    var s_comfortableinteracting =getRatingSection(p, 'comfortableinteracting', 'I would be comfortable interacting with this avatar for work', answers);
-    var s_appropriate =getRatingSection(p, 'appropriate', 'The avatar is appropriate for work', answers);
-    var s_creepy =getRatingSection(p, 'creepy', 'The avatar is creepy', answers);
-    var s_formal =getRatingSection(p, 'formal', 'The avatar looks formal (not cartoonish)', answers);
-    var s_lookslike =getRatingSection(p, 'lookslike', 'The avatar (left) looks like the person (right)', answers);
-    var s_facialexpressions =getRatingSection(p, 'facialexpressions', 'The avatar’s facial expressions (left) are accurate with the video (right)', answers);
-
-
-    list ={
-			'1': s_trust,
-			'2': s_realistic,
-			'3': s_comfortableusing,
-			'4': s_comfortableinteracting,
-			'5': s_appropriate,
-			'6': s_creepy,
-			'7': s_formal,
-			'8': s_lookslike,
-			'9': s_facialexpressions
-		}
-
-    var html = overhead;
-    tmp_list = order.split("_");
-    for (i=0; i<tmp_list.length; i++){
-        tmp = list[tmp_list[i]];
-        tmp = tmp.replace("_elmt_X", "_elmt_" + i);
-        html = html + tmp;
-    }
-    if (!is_training){
-        html = html.replaceAll("t{0}", "q{0}").replaceAll("trainingFieldset", "ratingFieldset").replaceAll("T{0}", "Q{0}").replaceAll("playedAudioTraining", "playedAudioQ");
-    }
-    return html;
+function isGoldQuestionInTraining(id) {
+	console.log('isGoldQuestionInTraining');
+	console.log(id);
+	training_clip = getGoldQuestionInTrainingInfo($('span[id="' + id + '"]').attr("data-src-clip"));
+	if (training_clip!=null)
+		return true;
+	return false;
 
 }
+
+function checkGoldQCorrect(given_ans, accepted_var, correct_hash, url) {
+
+	console.log('checkGoldQCorrect');
+	console.log("given_ans"+given_ans+ " accepted_var"+accepted_var+ " correct_hash"+correct_hash+ " url"+url);
+	// return true if correct_hash is null or its lenght after trim is 0
+	if (!correct_hash || correct_hash.trim().length == 0)
+		return true;
+	
+	//console.log("++++++++++++++ checkGoldQCorrect");
+	for (var i = given_ans - accepted_var ; i <= given_ans + accepted_var ; i++) {
+		//console.log(i);
+		//console.log(url+"_"+i);
+		//console.log(correct_hash);
+
+		//if (btoa(url+"_"+i) == correct_hash){
+		if (i == correct_hash){
+			//console.log("++++++++++++++ correct ans is: "+i);
+			return true;
+		}				
+	}
+	return false;
+}
+
+function onValueChangeForGoldQuestionInTraining(obj, url, ans) {
+	//console.log("gold onValueChangeForGoldQuestionInTraining");
+	q_name = $(obj).attr('name');
+	//console.log(q_name);
+	// no answer is provided
+	if (ans == null)
+		return;
+
+	if ( !checkGoldQCorrect(Number($(obj).val()), ans["var"], ans["ans"], url)){			
+		alert(ans["msg"]);
+		$(obj).prop('checked', false);
+		return false;
+	}
+	
+}
+
+//--------------------------
 
 function getACRScale(type, is_training){
 	let p ='q';
 	if (is_training) p = 't';
 
 	template5 =
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="5">Excellent</label></div></td><td class="c">5</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="4">Good</label></div></td><td class="c">4</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="3">Fair</label></div></td><td class="c">3</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="2">Poor</label></div></td><td class="c">2</td></tr>'+
-	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="1"required="">Bad</label></div></td><td class="c">1</td></tr>';
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="5">Strongly Agree</label></div></td><td class="c">5</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="4">Agree</label></div></td><td class="c">4</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="3">Neutral</label></div></td><td class="c">3</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="2">Disagree</label></div></td><td class="c">2</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="1"required="">Strongly Disagree</label></div></td><td class="c">1</td></tr>';
 
 
 	template9 =
@@ -1792,6 +1795,7 @@ function getACRScale(type, is_training){
 		return template9;
 	}
 	return '';
+
 }
 
 /*
@@ -1799,22 +1803,19 @@ function getACRScale(type, is_training){
 */
 function generate_training_section(){
 	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#T{0}-panel" id="T{0}-tab " role="tab" aria-controls="T{0}" {2}>Q. {0}</a></li>';
-    /*
 	dcr_tab ='<div class="tab-pane fade {2}" id="T{0}-panel" role="tabpanel" aria-labelledby="T{0}-tab"><p></p>'+
 	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
-	'<p style="margin-top:10px;">{0}. How do you rate the quality of the following video clip? </p> <div class="row"> <p align="center">'+
+	'<p style="margin-top:10px; text-align: center;">{0}. Imagine you want to participate in an <b>online meeting related to your work</b>. In that meeting, <b>you or your counterpart</b> will be represented as shown in the following videos. </p> <div class="row"> <p align="center">'+
 	'<span class="velmnt" id="t{0}" data-src-clip="{1}" data-onfinished="playedVideoTraining" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>'+
+	'<p style="margin-top:10px; text-align: center;"> How much do you agree or disagree with the following statement: </br></br>{3}</p>'+
 	'<div class="row">	<div class="col-sm-4"></div>	<div class="col-sm-4">'+
-	'<fieldset id="fieldset_t{0}" class="trainingFieldset" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The quality is</th><th class="c" >Score</th></tr></thead><tbody>'+
+	'<fieldset id="fieldset_t{0}" class="trainingFieldset" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th ></th><th class="c" >Score</th></tr></thead><tbody>'+
 	getACRScale(config['scale_points'], true)+
 	'</tbody></table></fieldset><p></p></div> <div class="col-sm-4"></div></div> </div>';
-    */
-    // load the order
-	order = $("#rating_question_order").val();
 
-    var dcr_tab = getTelepScale(order, true);
 	// this will show which url was shown by in which question as their orther will be randomized
-	input_template= '<input id="T{0}_URL" name="T{0}_URL" type="hidden" value="{1}" />';
+	input_template= '<input id="T{0}_URL" name="T{0}_URL" type="hidden" value="{1}" />' +
+	'<input id="T{0}_ITEM" name="T{0}_ITEM" type="hidden" value="{2}" />';
 
     if (JSON.parse(config['randomizeTrainingQuestions']))
 		urls = shuffle(config['trainingUrls']);
@@ -1822,18 +1823,33 @@ function generate_training_section(){
 		urls = config['trainingUrls'];
 
 	var i;
-	for (i = 0; i < urls.length; i++) {
-		if (i==0){
-			$('#trainingTabs').append(dcr_nav_tab.f(i+1,'active', 'ria-selected="true"'));
-			$('#nav-tabContent').append(dcr_tab.f(i+1, urls[i],'in active'));
-		}else{
-			$('#trainingTabs').append(dcr_nav_tab.f(i+1,'',''));
-			$('#nav-tabContent').append(dcr_tab.f(i+1, urls[i],''));
+	var j;
+	var elId;
+	var items = [];
+	for	(j = 0; j < Object.keys(ratingQuestions).length; j++) {
+		for (i = 0; i < urls.length; i++) {
+			text = ratingQuestions[(j % Object.keys(ratingQuestions).length)+1]["text"]
+			url = urls[i]
+			id = ratingQuestions[(j % Object.keys(ratingQuestions).length)+1]["id"]
+			items.push({'text':text, 'url':url, 'id':id});
 		}
-		$('#nav-tabContent').append(input_template.f(i+1, urls[i]));
 	}
-
-	trainingStimulusPlayed = new Array(urls.length).fill(0);
+	if (JSON.parse(config['fullyRandomizeVideosAndItems']))
+		items = shuffle(items);
+	
+	for (i = 0; i < items.length; i++) {
+			item = items[i];
+			elId = i+1
+			if (i==0){
+				$('#trainingTabs').append(dcr_nav_tab.f(elId,'active', 'ria-selected="true"'));
+				$('#nav-tabContent').append(dcr_tab.f(elId, item['url'],'in active',item['text']));
+			}else{
+				$('#trainingTabs').append(dcr_nav_tab.f(elId,'',''));
+				$('#nav-tabContent').append(dcr_tab.f(elId, item['url'],'',item['text']));
+			}
+			$('#nav-tabContent').append(input_template.f(elId, item['url'],item['id'] ));
+		}
+	trainingStimulusPlayed = new Array(urls.length * Object.keys(ratingQuestions).length).fill(0);
 }
 
 /*
@@ -1841,23 +1857,19 @@ function generate_training_section(){
 */
 function generate_rating_section(){
 	dcr_nav_tab = '<li class="nav-item {1}"><a class="nav-link " data-toggle="tab"  href="#Q{0}-panel" id="Q{0}-tab " role="tab" aria-controls="Q{0}" {2}>Q. {0}</a></li>';
-	/*
-    dcr_tab ='<div class="tab-pane fade {2}" id="Q{0}-panel" role="tabpanel" aria-labelledby="Q{0}-tab"><p></p>'+
+	dcr_tab ='<div class="tab-pane fade {2}" id="Q{0}-panel" role="tabpanel" aria-labelledby="Q{0}-tab"><p></p>'+
 	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
-	'<p style="margin-top:10px;">{0}. How do you rate the quality of the following video clip?? </p> <div class="row"> <p align="center">'+
+		'<p style="margin-top:10px; text-align: center;">{0}. Imagine you want to participate in an <b>online meeting related to your work</b>. In that meeting, <b>you or your counterpart</b> will be represented as shown in the following videos. </p> <div class="row"> <p align="center">'+
 	'<span class="velmnt" id="Q{0}" data-src-clip="{1}" data-onfinished="playedVideoQ" data-scale="{{cfg.video_player}}">&nbsp;</span> </p> </div> </div> <div class="col-sm-2"></div> </div>'+
+	'<p style="margin-top:10px; text-align: center;"> How much do you agree or disagree with the following statement: </br></br> {3} </p>'+
 	'<div class="row">	<div class="col-sm-4"></div>	<div class="col-sm-4">'+
-	'<fieldset id="fieldset_Q{0}" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The quality is</th><th class="c" >Score</th></tr></thead><tbody>'+
+	'<fieldset id="fieldset_q{0}" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th></th><th class="c" >Score</th></tr></thead><tbody>'+
 	getACRScale(config['scale_points'], false)+
 	'</tbody></table></fieldset><p></p></div> <div class="col-sm-4"></div></div> </div>';
-    */
-    // set the order of scale
-	order = $("#rating_question_order").val();
-
-    var dcr_tab = getTelepScale(order, false);
 
 	// this will show which url was shown by in which question as their orther will be randomized
-	input_template= '<input id="Q{0}_URL" name="Q{0}_URL" type="hidden" value="{1}" />';
+	input_template= '<input id="Q{0}_URL" name="Q{0}_URL" type="hidden" value="{1}" /> ' +
+	'<input id="Q{0}_ITEM" name="Q{0}_ITEM" type="hidden" value="{2}" />';
 
 	if (JSON.parse(config['randomizeRatingQuestions']))
 		urls = shuffle(config['questionUrls']);
@@ -1865,18 +1877,56 @@ function generate_rating_section(){
 		urls = config['questionUrls'];
 
 	var i;
-	for (i = 0; i < urls.length; i++) {
-		if (i==0){
-			$('#nav-tab-ul').append(dcr_nav_tab.f(i+1,'active', 'ria-selected="true"'));
-			$('#nav-tabContent-rating').append(dcr_tab.f(i+1, urls[i],'in active'));
-		}else{
-			$('#nav-tab-ul').append(dcr_nav_tab.f(i+1,'',''));
-			$('#nav-tabContent-rating').append(dcr_tab.f(i+1, urls[i],''));
+	var j;
+	var elId;
+	var items = [];
+	for	(j = 0; j < Object.keys(ratingQuestions).length; j++) {
+		for (i = 0; i < urls.length; i++) {
+			text = ratingQuestions[(j % Object.keys(ratingQuestions).length)+1]["text"]
+			url = urls[i]
+			id = ratingQuestions[(j % Object.keys(ratingQuestions).length)+1]["id"]
+			items.push({'text':text, 'url':url, 'id':id});
 		}
-		$('#nav-tabContent-rating').append(input_template.f(i+1, urls[i]));
 	}
+	if (JSON.parse(config['fullyRandomizeVideosAndItems']))
+		items = shuffle(items);
+
+	for (i = 0; i < items.length; i++) {
+			item = items[i];
+			elId = i+1
+			if (i==0){
+				$('#nav-tab-ul').append(dcr_nav_tab.f(elId,'active', 'ria-selected="true"'));
+				$('#nav-tabContent-rating').append(dcr_tab.f(elId, item['url'],'in active',item['text']));
+			}else{
+				$('#nav-tab-ul').append(dcr_nav_tab.f(elId,'',''));
+				$('#nav-tabContent-rating').append(dcr_tab.f(elId, item['url'],'',item['text']));
+			}
+			$('#nav-tabContent-rating').append(input_template.f(elId, item['url'],item['id'] ));
+		}
 
 }
+
+function help_which_questions_remain(){
+	msg = "";
+	if (unansweredQuestions.size>0 ){
+		msg = 'Following questions remained in the "Ratings" section: \n';
+		// count number of times each item appears in the list
+		for (let item of unansweredQuestions){
+			msg= msg + '\t•'+questionName2Text(item)+'\n';
+		}			
+	}else{
+		msg = "All questions in the Rating section are answered, in case the Submit button is still deactivate, please check other sections."
+	}
+	alert(msg);
+}
+
+function questionName2Text(qName){
+	const RE_DATE = /q(\d+)_(\w+)/;
+	const matchObj = RE_DATE.exec(qName);
+	const template = "Trial {0}: {1}";	
+	return template.f(matchObj[1],matchObj[2]);
+}
+
 </script>
 
 <script type="text/javascript">
@@ -2081,7 +2131,12 @@ function playVideo_continue(id, video, is_dcr){
     	parent.classList.remove("bg");
 		$("#{0} .vcontainer".f(id)).show();
 	}
-    let oldH=video.getAttribute("height");
+	// check aspect ratio of video
+	let w = video.videoWidth;
+    let h = video.videoHeight;
+	let ratio = w/h;
+
+	let oldH=video.getAttribute("height");
     let oldW=video.getAttribute("width");
     let fullW=screen.width;
     let fullH=screen.height;
@@ -2257,6 +2312,7 @@ function get_expected_duration(id, is_from_play){
 	return duration;
 }
 
+
 function end_video(id, is_first_video){
     //console.log("end_video video {0}, time{1}".f(id, (new Date()).toISOString()));
 	$("#velmnt_s_"+id).removeClass("glyphicon-pause");
@@ -2387,8 +2443,11 @@ $(function() {
     velements_added = true;
 });
 
+
 const download_start = new Map();
 const download_duration = new Map();
+// a set with already downloaded urls
+const videos_downloaded = new Map();
 /*
 	Download the video and create local link
 */
@@ -2400,6 +2459,11 @@ function load_videos_to_storage(video_id){
 		return;
 	}
 	src = $('#{0}'.f(video_id)).attr('data-src');
+	if (videos_downloaded.has(src)){
+		document.getElementById(id).src = videos_downloaded.get(src);
+		return;
+	}
+
 	var req = new XMLHttpRequest();
 	req.open('GET', src, true);
 	req.responseType = 'blob';
@@ -2414,7 +2478,9 @@ function load_videos_to_storage(video_id){
 			video_size_MB = video_size_MB + tmp;
 			var videoBlob = this.response;
 			var vurl = URL.createObjectURL(videoBlob);
+			let current_src = $('#{0}'.f(id)).attr('data-src');
 			document.getElementById(id).src = vurl;
+			videos_downloaded.set(current_src, vurl);
 	   }else{
 	   		console.log(this.status + ' ERROR: '+id+ ', src:'+tmp_src);
 			load_videos_to_storage(id);
@@ -2429,6 +2495,7 @@ function load_videos_to_storage(video_id){
 	}
 	req.send();
 }
+
 
 /**
 	Add the necessary listeners to a newly created video element
@@ -2464,12 +2531,12 @@ function alertForbiddenChange(){
 function avoidAnsweringBeforeWatchingThrough(){
 	var i;
 	// Training section
-	for (i = 0; i < config['trainingUrls'].length; i++) {
-		$('input[name^="t{0}"]'.f(i+1)).on('change', alertForbiddenChange);
+	for (i = 0; i < config['trainingUrls'].length * Object.keys(ratingQuestions).length; i++) {
+		$('input[name="t{0}"]'.f(i+1)).on('change', alertForbiddenChange);
 	}
 	// Rating section
-	for (i = 0; i < config['questionUrls'].length; i++) {
-		$('input[name^="q{0}"]'.f(i+1)).on('change', alertForbiddenChange);
+	for (i = 0; i < config['questionUrls'].length * Object.keys(ratingQuestions).length; i++) {
+		$('input[name="q{0}"]'.f(i+1)).on('change', alertForbiddenChange);
 	}
 }
 
@@ -2738,13 +2805,41 @@ function avoidAnsweringBeforeWatchingThrough(){
 					  	<div class="row" style="text-align:center;margin:50px;display:none;" id="vat_container">
 						  <p id="result_vat"></p>
 						</div>
-			  </fieldset>
+					</fieldset>
 
+				</div>
+			</fieldset>
+
+			<fieldset class="qualificationFieldset">
+				<div class="form-group">
+					<label for="sel4">10.	How often do you have online meetings?</label>
+					<select class="form-control" id="sel4" name="10_online_meetings" required="">
+						  <option value="">Please select</option>
+						  <option value="D">Every day</option>
+						  <option value="W">A few times a week</option>
+						  <option value="M">A few times a month</option>
+						</select>
+					</div>
+				</fieldset>
+ 
+			<fieldset class="qualificationFieldset">
+				<div class="form-group">
+					<label for="sel3">11.	How often do you use an avatar?</label>
+					<select class="form-control" id="sel3" name="11_avatar_usage" required="">
+							<option value="">Please select</option>
+							<option value="D">Every day</option>
+							<option value="W">A few times a week</option>
+							<option value="M">A few times a month</option>
+							<option value="Y">A few times a year</option>
+							<option value="N">Never</option>
+					</select>
+				  </div>
+			  </fieldset>
 
 			  <fieldset class="qualificationFieldset">
 				  <div class="form-group">
-					  <label for="sel3">9.	How often do you use an avatar?</label>
-					  <select class="form-control" id="sel3" name="9_avatar_usage" required="">
+					  <label for="sel5">12.	How often do you share your video during an online meetings? </label>
+					  <select class="form-control" id="sel5" name="12_video_meeting" required="">
 							<option value="">Please select</option>
 							<option value="D">Every day</option>
 							<option value="W">A few times a week</option>
@@ -2754,35 +2849,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 					  </select>
 				  </div>
 			  </fieldset>
-
-			  <fieldset class="qualificationFieldset">
-				  <div class="form-group">
-					  <label for="sel4">10.	How often do you have online meetings?</label>
-					  <select class="form-control" id="sel4" name="10_online_meetings" required="">
-							<option value="">Please select</option>
-							<option value="D">Every day</option>
-							<option value="W">A few times a week</option>
-							<option value="M">A few times a month</option>
-							<option value="Y">A few times a year</option>
-							<option value="N">Never</option>
-					  </select>
-				  </div>
-			  </fieldset>
-
-			  <fieldset class="qualificationFieldset">
-				  <div class="form-group">
-					  <label for="sel5">11.	How often do you share your video during an online meetings? </label>
-					  <select class="form-control" id="sel5" name="11_video_meeting" required="">
-							<option value="">Please select</option>
-							<option value="D">Every day</option>
-							<option value="W">A few times a week</option>
-							<option value="M">A few times a month</option>
-							<option value="Y">A few times a year</option>
-							<option value="N">Never</option>
-					  </select>
-				  </div>
-			  </fieldset>
-
+	  
 			</div>
 		</div>
 
@@ -2926,39 +2993,19 @@ function avoidAnsweringBeforeWatchingThrough(){
 
 <!-- Instruction about impairments-->
 <section class="container disabled_section" id="impairments">
-  <div class="panel panel-primary">
-    <div class="panel-heading">
-      <h3 class="panel-title">
-        <a data-target="#instructionImp" data-toggle="collapse">Instructions about ratings (only once)</a>
-      </h3>
-    </div>
-    <div class="panel-collapse collapse in" id="instructionImp">
-      <div class="panel-body">
-        <p>Almost ready to start. </p>
-        <p>Thank you for participating in this subjective study aimed at assessing the trustworthiness and realism of avatars in online meetings. Your feedback will help us understand how users perceive and interact with avatars. Please provide honest and thoughtful responses to the following questions:</p>
-        <ul>
-			<li> Single Video: You are given a video of avatar and asked a question about trustworthiness, realism, and being comfortable using/interacting with the avatar in online meetings. Your task is to rate the question in the scale 1 to 5.
-				<ul>
-					<li>5. Strongly agree</li>
-            		<li>4. Agree</li>
-            		<li>3. Neither agree nor disagree</li>
-            		<li>2. Disagree</li>
-            		<li>1. Strongly disagree</li>
-          		</ul>
-			</li>
-          	<li> Side by Side: You are given a side by side real video or a person and its avatar version, and your task is to compare the expression of the avatar to that of the real video and rate this comparison in the scale of 1 to 5.
-				<ul>
-					<li>5. Strongly agree</li>
-            		<li>4. Agree</li>
-            		<li>3. Neither agree nor disagree</li>
-            		<li>2. Disagree</li>
-            		<li>1. Strongly disagree</li>
-          		</ul>
-			</li>
-		</ul>
-      </div>
-    </div>
-  </div>
+		<div class="panel panel-primary">
+			<div class="panel-heading">
+				<h3 class="panel-title">
+					<a data-target="#instructionImp" data-toggle="collapse" >Instructions about ratings (only once)</a>
+
+				</h3>
+			</div>
+			<div  class="panel-collapse collapse in" id="instructionImp">
+			<div class="panel-body">
+				{{cfg.instruction_html}}
+			</div>
+			</div>
+		</div>
 </section>
 
 
@@ -2974,7 +3021,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 				<div class="panel-body">
 				<p> Please answer the following <b class="question_number_training"> 0 </b> questions.
 					<p>For each question, please carefully watch the video clip by clicking on the play button in full-screen mode.
-					At the end, you should judge its quality by using one of the <x class="scale_levels">5</x> levels of the given scale.
+					At the end, you should specify how much do you agree or disagree with the provided statement for that question on the provided <x class="scale_levels">5</x> levels of the given scale.
 					Observe carefully the entire video clip before making your judgment.</p>
 
 				   <p> <b>Note</b> that the scale will be activated when the corresponding video clip played until the end. </p>
@@ -3021,7 +3068,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 			<div class="panel-body">
 				<p> Please answer the following <b class="question_number"> 0 </b> questions.</p>
 				<p>For each question, please carefully watch the video clip by clicking on the play button in full-screen mode.
-					At the end, you should judge its quality by using one of the <x class="scale_levels">5</x> levels of the given scale.
+					At the end, you should specify how much do you agree or disagree with the provided statement for that question on the provided <x class="scale_levels">5</x> levels of the given scale.
 					Observe carefully the entire video clip before making your judgment.</p>
 
 				   <p> <b>Note</b> that the scale will be activated when the corresponding video clip played until the end. </p>
@@ -3047,6 +3094,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 
 <section class="container" id="thanks">
 	<p>Thanks for your participation. Please perform more HITs from this group when they are available for you.</p>
+	<p>Note: The submit button works only if you answer to all questions. Make sure to answer to all 8 questions for each video. <a id="myLink" href="#" onclick="help_which_questions_remain();return false;">Click here to see which questions in the "Rating" section are not answered?</a></p>
 </section>
 
 <section class="container" id="max_allowed_HITs_reached" hidden>

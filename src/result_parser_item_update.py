@@ -117,19 +117,16 @@ def check_if_session_accepted(data):
         msg += "Your HIT was rejected because you rated one or more control clip incorrectly. Control clips are ones that we know that answer for and should be very easy to rate (they are clearly very good or very poor). We include control clips in the HIT to ensure raters are paying attention during the entire HIT and their environment hasn't changed"
         failures.append('gold_question')
 
-    """
+    
     if data['all_videos_played'] != int(config['acceptance_criteria']['all_video_played_equal']):
         accept = False
         msg += "All videos are not watched;"
         failures.append('all_videos_played')
-    """
+    
     if not accept:
         data['Reject'] = msg
     else:
         data['Reject'] = ""
-
-    # pd.DataFrame(data).to_csv(r".\Teleport_a_12_11_2023\data.csv")
-    # pd.DataFrame({'failures': failures}).to_csv(r".\Teleport_a_12_11_2023\failures.csv")
     return accept, failures
 
 
@@ -163,8 +160,6 @@ def check_if_session_should_be_used(data):
             should_be_used = False
             failures.append('correct_matrix_all')
 
-    # pd.DataFrame({'failures': failures}).to_csv(r".\Teleport_a_12_11_2023\failures.csv")
-
     return should_be_used, failures
 
 
@@ -177,17 +172,16 @@ def check_video_played(row, method):
     """
     question_played = 0
     try:
-        if method in ['acr', 'acr-hr', 'dcr', 'ccr',  'tlp_a', 'tlp_b']:
-            for q_name in question_names:
-                if int(float(row[f'answer.video_n_finish_{q_name}'])) > 0:
-                    question_played += 1
-    except Exception as e:
-        logger.info(f'Caught exception while checking for all videos {e}')
+        #if method in ['acr', 'acr-hr', 'dcr', 'ccr']:
+        for q_name in question_names:
+            if int(row[f'answer.video_n_finish_{q_name}']) > 0:
+                question_played += 1
+    except:
         return False
     return question_played == len(question_names)
 
 
-def check_tps_tlpb(row, method):
+def check_tps(row, method):
     """
     Check if the trapping clip(s) are answered correctly
     :param row:
@@ -214,52 +208,7 @@ def check_tps_tlpb(row, method):
         # else:
             # print('url{0}, given_ans:{1}, tp_ans:{2}, num_qnames{3}'.format(tp_url, given_ans, tp_correct_ans, len(question_names)))
     except:
-        logger.info(given_ans, tp_correct_ans)
-        pass
-    return correct_tps
-
-
-def check_tps(row, method):
-    """
-    Check if the trapping clip(s) are answered correctly
-    :param row:
-    :param method: acr, dcr, or acr-hr
-    :return:
-    """
-    if method == 'tlp_b':
-        return check_tps_tlpb(row, method)
-    correct_tps = 0
-    incorrect_tps = 0
-    tp_url = row[config['trapping']['url_found_in']]
-    tp_correct_ans = [int(float(row[config['trapping']['ans_found_in']]))]
-    tp_q_name_dict = {'lessthan5':1, 'cantreadenglish':1, 'hundred':1, 'speling':1, 'lesshundred':5, 'olderthan5':5, 'canreadenglish':5}
-    try:
-        suffix = ''
-        for idx, q_name in enumerate(question_names):
-            if tp_url in row[f'answer.{q_name}_url']:
-                for pt in problem_tokens:
-                    suffix = "_" + pt
-                    # found a trapping clips question
-                    given_ans = int(float(row[f'answer.{q_name}{suffix}']))
-                    if method == 'ccr' and row[f'answer.{q_name}_order'] == 'pr':
-                        given_ans= given_ans * -1
-                    if given_ans not in tp_correct_ans:
-                        incorrect_tps += 1
-            # elif f'answer.{q_name}_tp' in row.keys() or f'answer.{q_name}_repeatedid' in row.keys():
-            else:
-                tp_name = row[f'answer.{q_name}_tpid']
-                if abs(int(float(row[f'answer.{q_name}_tp'])) - tp_q_name_dict[row[f'answer.{q_name}_tpid']]) > 1:
-                    # print(f"row number[{idx}] and url [{tp_url}] failed TP for {q_name} with answer ", row[f'answer.{q_name}_tp'])
-                    incorrect_tps += 1
-                    all_tp_anss = [int(float(row[f'answer.{q_name_debug}_tp'])) for q_name_debug in question_names]
-                repeatqname = row[f'answer.{q_name}_repeatedid']
-                if abs(int(float(row[f'answer.{q_name}_{repeatqname}'])) - int(float(row[f'answer.{q_name}_repeatingitem']))) > 1:
-                    incorrect_tps += 1
-        if incorrect_tps <= 0:
-            correct_tps = 1
-        return correct_tps
-    except Exception as e:
-        logger.info(f'caught exception while checking for tps {e}')
+        print(given_ans, tp_correct_ans)
         pass
     return correct_tps
 
@@ -271,7 +220,6 @@ def check_variance(row, method):
     :return:
     """
     r = []
-    r_pt = []
     for q_name in question_names:
         if 'gold_question' in config and row[config['gold_question']['url_found_in']] in row[f'answer.{q_name}_url']:
             continue
@@ -280,25 +228,19 @@ def check_variance(row, method):
         try:
             if method == 'ccr':
                 order = 1 if row[f'answer.{q_name}{question_name_suffix}_order'] == 'pr' else -1
-                r.append(int(row[f'answer.{q_name}{question_name_suffix}']) * order)
+                r.append(int(float(row[f'answer.{q_name}{question_name_suffix}'])) * order)
             else:
-                for pt in problem_tokens:
-                    r_pt.append(int(float(row[f'answer.{q_name}{question_name_suffix}_{pt}'])))
-                # r.append(int(float(row[f'answer.{q_name}{question_name_suffix}'])))
-                if len(r_pt) > 1:
-                    r.append(statistics.variance(r_pt))
-                else:
-                    r.append(1)
-        except Exception as exp:
-            logger.info(f'caught exception in check variance as {exp}')
+                
+                r.append(int(float(row[f'answer.{q_name}{question_name_suffix}'])))
+        except:
             pass
     try:
-        # v = statistics.variance(r) if len(r)> 1 else 1
-        v = statistics.mean(r) if len(r) > 1 else 1
+        v = statistics.variance(r) if len(r)> 1 else 1
         return v
     except:
         pass
     return -1
+
 
 def check_gold_question_tlepb(row):
     correct_gq = 0
@@ -337,17 +279,18 @@ def check_gold_question_tlepb(row):
         return None, None
     return correct_gq, details
 
-
 def check_gold_question(row, method):
     """
     Check if the gold_question is answered correctly
     :param row:
     :return:
     """
-    if method == 'tlp_b':
+    if method.replace('acr','') in problem_tokens_b:
         return check_gold_question_tlepb(row)
+    real ={'formal':5, 'trust':5, 'comfortableusing':5, 'realistic':5, 'creepy':1, 'comfortableinteracting':5, 'appropriate':5}
+    cartoon ={'formal':1, 'realistic':1, 'appropriate':1, 'trust':1}
+    
     correct_gq = 0
-    incorrect_gq = 0
     details = {}
     try:
         gq_url = row[config['gold_question']['url_found_in']]
@@ -355,29 +298,36 @@ def check_gold_question(row, method):
         gq_correct_ans = int(float(row[config['gold_question']['ans_found_in']]))
         gq_var = int(float(config['gold_question']['variance']))
         details ={'gq_url': gq_url, 'gq_correct_ans':gq_correct_ans }
+        item_ans = {}
         for q_name in question_names:
             if gq_url in row[f'answer.{q_name}_url']:
-                q_names_pt = [f'{q_name}_{pt}' for pt in problem_tokens]
                 # found a gold standard question
-                for q_name_pt in q_names_pt:
-                    # found a gold standard question
-                    details['given_ans'] = int(float(row[f'answer.{q_name_pt}']))
-                    """
-                    adjusted_gq_var = 4
-                    if gq_correct_ans == 1 and ('realistic' in q_name_pt or 'formal' in q_name_pt):
-                        adjusted_gq_var = gq_var
-                    elif gq_correct_ans == 5 and ('realistic' in q_name_pt or 'trust' in q_name_pt or 'confortable' in q_name_pt or 'formal' in q_name_pt):
-                        adjusted_gq_var = gq_var
-                    elif gq_correct_ans == 5 and 'creepy' in q_name_pt:
-                        adjusted_gq_var = gq_var
-                        gq_correct_ans = 1
-                    """
-                    if int(float(row[f'answer.{q_name_pt}'])) in range(gq_correct_ans-gq_var, gq_correct_ans+gq_var+1):
-                        correct_gq = 1
-                        return correct_gq, details
-            
+                pt = row[f'answer.{q_name}_item'].lower().strip()
+                details['given_ans_'+pt] = int(float(row[f'answer.{q_name}']))                
+                item_ans[pt] = int(float(row[f'answer.{q_name}']))
+                """
+                # original code, looks complex 
+                adjusted_gq_var = 4
+                if gq_correct_ans == 1 and pt.lower() in ('realistic', 'formal'):
+                    adjusted_gq_var = gq_var
+                elif gq_correct_ans == 5 and pt.lower() in ('realistic', 'trust', 'confortable', 'formal'):
+                    adjusted_gq_var = gq_var
+                elif gq_correct_ans == 5 and 'creepy' == pt.lower():
+                    adjusted_gq_var = gq_var
+                    gq_correct_ans = 1
+                if int(float(row[f'answer.{q_name}'])) in range(gq_correct_ans-gq_var, gq_correct_ans+adjusted_gq_var+1):
+                    correct_gq = 1
+                    return correct_gq, details
+                """            
+        correct_ans = real if gq_correct_ans == 5 else cartoon
+        correct_gq = 0        
+        for key in correct_ans.keys():
+            if item_ans[key] not in range(correct_ans[key]-gq_var, correct_ans[key]+gq_var+1):
+                return correct_gq, details
+        correct_gq = 1
+        return correct_gq, details
     except Exception as e:
-        logger.info('Gold Question error: '+ e)
+        logger.info('Gold Question error: ', e.messag)        
         return None, None
     return correct_gq, details
 
@@ -411,11 +361,11 @@ def check_matrix(row):
     if int(c1_correct) == int(given_c1) and int(t1_correct) == int(given_t1):
         n_correct += 1
     #else:
-    #    print(f'wrong matrix 1: c1 {c1_correct},{given_c1} | t1 {t1_correct},{given_t1}')
+    #    logger.info(f'wrong matrix 1: c1 {c1_correct},{given_c1} | t1 {t1_correct},{given_t1}')
     if int(c2_correct) == int(given_c2) and int(t2_correct) == int(given_t2):
         n_correct += 1
     #else:
-    #    print(f'wrong matrix 2: c2 {c2_correct},{given_c2} | t2 {t2_correct},{given_t2}')
+    #    logger.info(f'wrong matrix 2: c2 {c2_correct},{given_c2} | t2 {t2_correct},{given_t2}')
     return n_correct
 
 
@@ -425,15 +375,18 @@ def check_play_duration(row):
     :param row:
     :return: ration of play-back to clip
     """
+    # add try catch
     try:
         total_duration = sum(float(row[f'answer.video_duration_{q}']) for q in question_names)
         total_play_duration = sum(float(row[f'answer.video_play_duration_{q}']) for q in question_names)
         if total_duration == 0:
             return float('inf')
-    except ValueError as exp:
-        logger.info("Caught exception while retrieving play duration")
+        return total_play_duration/total_duration
+    except  Exception as e: 
+        #print(row)
         return float('inf')
-    return total_play_duration/total_duration
+    
+    
 
 
 def data_cleaning(filename, method, wrong_vcodes):
@@ -455,13 +408,19 @@ def data_cleaning(filename, method, wrong_vcodes):
     not_using_further_reasons = []
     not_accepted_reasons = []
     gold_question_details = []
-
    #"""
     failed_workers = []
    #in_df.sort_values(by=['answer.visual_acuity_result'], ascending=False, inplace=True)
    #"""
+   # make sure question_names exists , it should be in fomrat of answer.{q_name}_url in reader.filednames
+    valid_q_names = []
+    for q in question_names:
+        if f'answer.{q}_url' in reader.fieldnames:
+            valid_q_names.append(q)
+    question_names = valid_q_names
+    print(f'question_names: {question_names}')
     for row in reader:
-        setup_was_hidden = 'answer.cmp1' not in row or  row['answer.cmp1'] is None or len(row['answer.cmp1'].strip()) == 0
+        setup_was_hidden = row['answer.cmp1'] is None or len(row['answer.cmp1'].strip()) == 0
         d = dict()
 
         d['worker_id'] = row['workerid']
@@ -508,7 +467,20 @@ def data_cleaning(filename, method, wrong_vcodes):
 
         should_be_used, failures = check_if_session_should_be_used(d)
         d['failures'] = failures
+        """
+        #--------------------------
+        failures = []
+        #d['VAT'] = row['answer.visual_acuity_result']
+        if should_be_used and float(d['video_load']) > 30000:
+            should_be_used = True
+            d['accept'] = 1
+            #failed_workers.append(d['worker_id'])
+        else:
+            should_be_used = False
+            d['accept'] = 0
 
+        # --------------------------
+        """
         not_using_further_reasons.extend(failures)
 
         if should_be_used:
@@ -517,20 +489,6 @@ def data_cleaning(filename, method, wrong_vcodes):
         else:
             d['accept_and_use'] = 0
 
-        #--------------------------------------
-        """
-        # ablation
-        if d['correct_tps'] == 0:
-            d['accept'] = 1
-            d['accept_and_use'] = 1
-            d['Approve'] = 'x'
-        else:
-            d['Approve'] = ''
-            d['accept'] = 0
-            d['accept_and_use'] = 0
-            d['Approve'] = ''
-        """
-        #--------------------------------------
         worker_list.append(d)
 
     report_file = os.path.splitext(filename)[0] + '_data_cleaning_report.csv'
@@ -543,13 +501,10 @@ def data_cleaning(filename, method, wrong_vcodes):
     block_list_file = os.path.splitext(filename)[0] + '_block_list.csv'
     gold_q_file = os.path.splitext(filename)[0] + '_gold.csv'
     logger.info(f'{len(worker_list)} submissions are processed.')
-    # pd.DataFrame(worker_list).to_csv(r".\Teleport_a_12_11_2023\worker_list.csv")
 
     # reject hits when the user performed more than the limit
     worker_list = evaluate_maximum_hits(worker_list)
     # check rater_min_* criteria
-    logger.info(f'length of worker list is {len(worker_list)}')
-    logger.info(f'length of use_sessions is {len(use_sessions)}')
 
     worker_list, use_sessions, num_rej_perform, block_list = evaluate_rater_performance(worker_list, use_sessions, True)
     worker_list, use_sessions, num_not_used_sub_perform, _ = evaluate_rater_performance(worker_list, use_sessions)
@@ -610,7 +565,7 @@ def evaluate_rater_performance(data, use_sessions, reject_on_failure=False):
     
     grouped = grouped.rename(columns={0: 'not_used_count', 1: 'used_count'})
     grouped['acceptance_rate'] = (grouped['used_count'] * 100)/(grouped['used_count'] + grouped['not_used_count'])
-    grouped.to_csv('debug_workers_performance.csv')
+    # grouped.to_csv('debug_workers_performance.csv')
 
     if 'rater_min_acceptance_rate_current_test' in config[section]:
         rater_min_acceptance_rate_current_test = int(config[section]['rater_min_acceptance_rate_current_test'])
@@ -700,17 +655,18 @@ def save_approve_rejected_ones_for_gui(data, path, wrong_vcodes):
     df = df[df.status == 'Submitted']
     small_df = df[['worker_id','assignment', 'HITId', 'Approve', 'Reject']].copy()
     small_df.rename(columns={'assignment': 'assignmentId', 'worker_id':'WorkerId'}, inplace=True)
+
     if wrong_vcodes is not None:
         wrong_vcodes_assignments = wrong_vcodes[['WorkerId','AssignmentId', 'HITId']].copy()
         wrong_vcodes_assignments["Approve"] = ""
-        wrong_vcodes_assignments["Reject"] = "wrong verification code or incomplete submission"
+        wrong_vcodes_assignments["Reject"] = "wrong verification code, incomplete submission, or duplicate verification code"
         wrong_vcodes_assignments.rename(columns={'AssignmentId': 'assignmentId'}, inplace=True)        
         small_df = pd.concat([small_df, wrong_vcodes_assignments], ignore_index=True)
 
-        # Count number of duplicate in assignmentId
+    # Count number of duplicate in assignmentId
     small_df['n_duplicate'] = small_df.groupby('assignmentId')['assignmentId'].transform('size')
     small_df['n_duplicate'] = small_df['n_duplicate'].apply(lambda x: x - 1)
-           
+            
     small_df.to_csv(path, index=False)
 
 
@@ -787,7 +743,8 @@ def save_rejected_ones(data, path, wrong_vcodes, not_accepted_reasons, num_rej_p
         logger.info(f'    overall {c_rejected} answers are rejected, from them {df.shape[0]} were in submitted status')
 
     not_accepted_reasons_list = list(collections.Counter(not_accepted_reasons).items())
-    not_accepted_reasons_list.append(('Wrong Verification Code', 0 if wrong_vcodes is None else len(wrong_vcodes.index)))
+    not_accepted_reasons_list.append(('Wrong Verification Code', len(wrong_vcodes.index)))
+
     if num_rej_perform != 0:
         not_accepted_reasons_list.append(('Performance', num_rej_perform))
 
@@ -797,9 +754,10 @@ def save_rejected_ones(data, path, wrong_vcodes, not_accepted_reasons, num_rej_p
     small_df.rename(columns={'assignment': 'assignmentId', 'Reject': 'feedback'}, inplace=True)
     if wrong_vcodes is not None:
         wrong_vcodes_assignments = wrong_vcodes[['AssignmentId']].copy()
-        wrong_vcodes_assignments["feedback"] = "Wrong verificatioon code"
+        wrong_vcodes_assignments["feedback"] = "Wrong verificatioon code or incomplete submission"
         wrong_vcodes_assignments.rename(columns={'AssignmentId': 'assignmentId'}, inplace=True)
         small_df = pd.concat([small_df, wrong_vcodes_assignments], ignore_index=True)
+
     small_df.to_csv(path, index=False)
 
 
@@ -1023,21 +981,19 @@ method_to_mos = {
     "dcr": 'DMOS',
     "acr-hr": 'MOS',
     'ccr': 'CMOS',
-    'tlp_atrust': 'MOS_Trust',
-    'tlp_aappropriate': 'MOS_Appropriate',
-    'tlp_acomfortableusing': 'MOS_ComfortableUsing',
-    'tlp_acomfortableinteracting': 'MOS_ComfortableInteracting',
-    'tlp_acreepy': 'MOS_Creepy',
-    'tlp_aformal': 'MOS_Formal',
-    'tlp_alike': 'MOS_Like',
-    'tlp_arealistic': 'MOS_Realistic',
-    'tlp_blookslike': 'MOS_LooksLike',
-    'tlp_bfacialexpressions': 'MOS_FacialExpressions',
-
+    'acrtrust': 'MOS_Trust',
+    'acrappropriate': 'MOS_Appropriate',
+    'acrcomfortableusing': 'MOS_ComfortableUsing',
+    'acrcomfortableinteracting': 'MOS_ComfortableInteracting',
+    'acrcreepy': 'MOS_Creepy',
+    'acrformal': 'MOS_Formal',
+    'acrrealistic': 'MOS_Realistic',
+    'acrlookslike': 'MOS_LooksLike',
+    'acrfacialexpressions': 'MOS_FacialExpressions',
+    'acrlike': 'MOS_Like'
 }
 
 question_names = []
-
 problem_tokens_a = ['trust', 'realistic', 'creepy', 'formal', 'comfortableusing', 'comfortableinteracting', 'appropriate', 'like']
 problem_tokens_b = ['facialexpressions', 'lookslike']
 question_name_suffix = ''
@@ -1061,7 +1017,7 @@ def transform(test_method, sessions, agrregate_on_condition, is_worker_specific)
     data_per_worker = []
     mos_name = method_to_mos[f"{test_method}{question_name_suffix}"]
 
-    input_question_names = [f"q{i}" for i in range(0, int(config['general']['number_of_questions_in_rating']))]
+    input_question_names = [f"q{i}" for i in range(0, int(config['general']['number_of_questions_in_rating']) * len(problem_tokens))]
     if test_method == 'acr-hr':
         for session in sessions:
             for question in input_question_names:
@@ -1075,30 +1031,30 @@ def transform(test_method, sessions, agrregate_on_condition, is_worker_specific)
             if 'trapping' in config and session[config['trapping']['url_found_in']] == session[f'answer.{question}_url']:
                 continue
             # is it a gold clips            
-            if not found_gold_question and\
-                    session[config['gold_question']['url_found_in']] == session[f'answer.{question}_url']:
+            if session[config['gold_question']['url_found_in']] == session[f'answer.{question}_url']:
                 found_gold_question = True
-                continue            
+                continue
+            if session[f'answer.{question}_item'] not in test_method:
+                continue
             short_file_name = session[f'answer.{question}_url'].rsplit('/', 1)[-1]
             file_name = session[f'answer.{question}_url']
             if file_name not in data_per_file:
                 data_per_file[file_name] = []
             votes = data_per_file[file_name]
             try:
-                votes.append(int(float(session[f'answer.{question}_{question_name_suffix}'])))
+                votes.append(int(float(session[f'answer.{question}{question_name_suffix}'])))
                 cond =conv_filename_to_condition(file_name)
                 tmp = {'HITId': session['hitid'],
                     'workerid': session['workerid'],
                         'file':file_name,
                        'short_file_name': file_name.rsplit('/', 1)[-1],
-                        'vote': int(float(session[f'answer.{question}_{question_name_suffix}']))}
+                        'vote': int(float(session[f'answer.{question}{question_name_suffix}']))}
 
                 tmp.update(cond)
                 data_per_worker.append(tmp)
             except Exception as err:
                 logger.info(err)
                 pass
-    data_per_worker_df = pd.DataFrame(data_per_worker)
     # convert the format: one row per file
     group_per_file = []
     condition_detail = {}
@@ -1117,11 +1073,8 @@ def transform(test_method, sessions, agrregate_on_condition, is_worker_specific)
                 votes = outliers_iqr(votes)
             v_len_after = len(votes)
             if v_len != v_len_after:
-                #print(f'{v_len - v_len_after} removed ({key})')
+                #logger.info(f'{v_len - v_len_after} removed ({key})')
                 outlier_removed_count += v_len - v_len_after
-                # also only keep the rows from data_per_worker_df when the file is "key" then vote should be in votes.
-                data_per_worker_df = data_per_worker_df[(data_per_worker_df['file'] != key) | (data_per_worker_df['vote'].isin(votes))]
-
 
         # extra step:: add votes to the per-condition dict
         tmp_n = conv_filename_to_condition(key)
@@ -1188,9 +1141,7 @@ def transform(test_method, sessions, agrregate_on_condition, is_worker_specific)
                 votes = outliers_iqr(votes)                
                 v_len_after = len(votes)
                 if v_len != v_len_after:
-                    outlier_removed_count += v_len-v_len_after                                                            
-                    # remove everyvotes in removed_votes from data_per_worker_df where conditio_name=key
-                    data_per_worker_df = data_per_worker_df[(data_per_worker_df['condition_name'] != key) | (data_per_worker_df['vote'].isin(votes))]   
+                    outlier_removed_count += v_len-v_len_after
             tmp = {**tmp, **condition_detail[key]}
             tmp['n'] = len(votes)
             if tmp['n'] > 0:
@@ -1208,7 +1159,7 @@ def transform(test_method, sessions, agrregate_on_condition, is_worker_specific)
             group_per_condition.append(tmp)
         if outlier_removed_count != 0:
             logger.info(f'  Overall {outlier_removed_count} outliers are removed in per condition aggregation.')
-    return group_per_file, group_per_condition, data_per_worker_df
+    return group_per_file, group_per_condition, data_per_worker
 
 
 def create_headers_for_per_file_report(test_method, condition_keys):
@@ -1218,9 +1169,7 @@ def create_headers_for_per_file_report(test_method, condition_keys):
     :return:
     """
     mos_name = method_to_mos[f"{test_method}{question_name_suffix}"]
-    std_name = 'std' + question_name_suffix.split('acr')[-1]
-    ci_name = '95%CI' + question_name_suffix.split('acr')[-1]
-    header = ['file_url', 'n', mos_name, std_name, ci_name, 'short_file_name'] + condition_keys
+    header = ['file_url', 'n', mos_name, 'std', '95%CI', 'short_file_name'] + condition_keys
     max_votes = max_found_per_file
     if max_votes == -1:
         max_votes = int(config['general']['expected_votes_per_file'])
@@ -1236,12 +1185,8 @@ def calc_payment_stat(df):
     :param df:
     :return:
     """
-    if 'Reward' not in df.columns:
-        return None, None
-    
     if 'Answer.time_page_hidden_sec' in df.columns:
-        # rewrite df['Answer.time_page_hidden_sec'].where(df['Answer.time_page_hidden_sec'] < 3600, 0, inplace=True)
-        df['Answer.time_page_hidden_sec'] = df['Answer.time_page_hidden_sec'].where(df['Answer.time_page_hidden_sec'] < 3600, 0)
+        df['Answer.time_page_hidden_sec'].where(df['Answer.time_page_hidden_sec'] < 3600, 0, inplace=True)
         df['time_diff'] = df["work_duration_sec"] - df['Answer.time_page_hidden_sec']
         median_time_in_sec = df["time_diff"].median()
     else:
@@ -1264,9 +1209,7 @@ def calc_stats(input_file):
     df = pd.read_csv(input_file, low_memory=False)
     df_full = df.copy()
     overall_time, overall_pay = calc_payment_stat(df)
-    if overall_pay is None:
-        # it was internal study
-        return
+
     # full study, all sections were shown
     df_full = df_full[~df_full['Answer.2_birth_year'].isna()]
     full_time, full_pay = calc_payment_stat(df_full)
@@ -1274,7 +1217,7 @@ def calc_stats(input_file):
     # no qual
     df_no_qual = df[df['Answer.2_birth_year'].isna()]
     df_no_qual_no_setup = df_no_qual[df_no_qual['Answer.t1_circles'].isna()]
-    only_rating = df_no_qual_no_setup[df_no_qual_no_setup[f'Answer.t1_{problem_tokens[0]}'].isna()].copy()
+    only_rating = df_no_qual_no_setup[df_no_qual_no_setup['Answer.t1'].isna()].copy()
 
     if len(only_rating)>0:
         only_r_time, only_r_pay = calc_payment_stat(only_rating)
@@ -1336,7 +1279,7 @@ def combine_amt_hit_server(amt_ans_path, hitapp_ans_path):
 
     columns_to_remove = amt_ans.columns.difference(['WorkerId', 'Answer.v_code', 'HITId',
                                              'HITTypeId', 'AssignmentId', 'WorkTimeInSeconds',
-                                             'Reward', 'Answer.hitapp_assignmentId', 'Input.url'])
+                                             'Reward', 'Answer.hitapp_assignmentId'])
     amt_ans.drop(columns=columns_to_remove, inplace=True)
     hitapp_ans.rename(columns={"WorkerId": "hitapp_workerid",
                                "AssignmentId": "hitapp_assignmentid",
@@ -1351,30 +1294,24 @@ def combine_amt_hit_server(amt_ans_path, hitapp_ans_path):
     # print the size
     logger.info(f"** {len(unique_assignments)} submissions are not completed by the workers.")
 
+    # 
+
     # remove stript vcodes entered by workers
     amt_ans['Answer.v_code'] = amt_ans['Answer.v_code'].str.strip()
     # number of rows in amt
     submissiones = len(amt_ans)
+
     # find rows with duplicate v_code
     amt_ans['is_duplicate'] = amt_ans.duplicated(subset=['Answer.v_code'], keep=False)
     duplicate_vc = amt_ans[amt_ans['is_duplicate'] == True]
-    # save the duplicate vcodes in a separate file
-    duplicate_vc.to_csv(amt_ans_path.replace('.csv' , '_duplicate_vc.csv'), index=False)
     amt_ans.drop_duplicates(subset=['Answer.v_code'], keep=False, inplace=True)
     # number of rows in amt after removing duplicates
     submissiones_after = len(amt_ans)
     logger.info(f"** {submissiones - submissiones_after} duplicate vcodes are removed from the AMT data.")
 
-
     # check if there are submission without conuter part key in hitapp servers
     not_in_hitapp = amt_ans[~amt_ans['Answer.v_code'].isin(hitapp_ans.v_code)]
-    # print the lenght
-    logger.info(f"** {len(not_in_hitapp)} submissions are not found in the HITAPP server.")
     recover_submission_withoiut_matching_vcode(hitapp_ans, amt_ans, not_in_hitapp)
-
-    # print number of rows for both dataframes
-    logger.info(f"** {len(amt_ans)} rows in the AMT data.")
-    logger.info(f"** {len(hitapp_ans)} rows in the HITAPP server data.")
     merged = pd.merge(hitapp_ans, amt_ans, left_on='v_code', right_on='Answer.v_code')
 
     columns_to_remove = ['Answer.v_code']
@@ -1386,13 +1323,8 @@ def combine_amt_hit_server(amt_ans_path, hitapp_ans_path):
 
     merged_ans_path = os.path.splitext(hitapp_ans_path)[0] + '_merged.csv'
     merged.to_csv(merged_ans_path, index=False)
-    # filter hitapp_ans and only keep the ones that are not in merged using the id column
-    hitapp_ans_not_found_in_amt = hitapp_ans[~hitapp_ans['id'].isin(merged.id)]
-    hitapp_ans_not_found_in_amt.to_csv(os.path.splitext(hitapp_ans_path)[0] + '_not_found_in_amt.csv', index=False)
-    # print the size
-    logger.info(f"** {len(hitapp_ans_not_found_in_amt)} submissions in HITAPP data are not found in the AMT data.")
-
     #todo: check if the assignment ids are also equal
+    # add lines with duplicate vcodes
     not_in_hitapp = pd.concat([not_in_hitapp, duplicate_vc], ignore_index=True)
     return merged_ans_path, not_in_hitapp
 
@@ -1447,16 +1379,16 @@ def analyze_results(config, test_method, answer_path, amt_ans_path,  list_of_req
     # votes_per_file, votes_per_condition = transform(accepted_sessions)
     if len(accepted_sessions) > 1:
         condition_set = []
-        for suffix in problem_tokens:
+        for suffix in suffixes:
             question_name_suffix = suffix
             logger.info("Transforming data (the ones with 'accepted_and_use' ==1 --> group per clip")
             use_condition_level = config.has_option('general', 'condition_pattern')
 
-            votes_per_file, vote_per_condition, data_per_worker_df = transform(test_method, accepted_sessions,
+            votes_per_file, vote_per_condition, data_per_worker = transform(test_method, accepted_sessions,
                                                            config.has_option('general', 'condition_pattern'), False)
 
-            votes_per_file_path = os.path.splitext(answer_path)[0] + f'_votes_per_clip{question_name_suffix}.csv'
-            votes_per_cond_path = os.path.splitext(answer_path)[0] + f'_votes_per_cond{question_name_suffix}.csv'
+            votes_per_file_path = os.path.splitext(answer_path)[0] + f'_votes_per_clip{question_name_suffix}{test_method}.csv'
+            votes_per_cond_path = os.path.splitext(answer_path)[0] + f'_votes_per_cond{question_name_suffix}{test_method}.csv'
 
             condition_keys = []
             if config.has_option('general', 'condition_pattern'):
@@ -1476,23 +1408,20 @@ def analyze_results(config, test_method, answer_path, amt_ans_path,  list_of_req
                 logger.info(f'   Votes per files are saved in: {votes_per_cond_path}')
                 condition_set.append(pd.DataFrame(vote_per_condition))
             if create_per_worker:
-                #write_dict_as_csv(data_per_worker, os.path.splitext(answer_path)[0] + f'_votes_per_worker{question_name_suffix}.csv')
-                data_per_worker_df.to_csv(os.path.splitext(answer_path)[0] + f'_votes_per_worker{question_name_suffix}.csv', index=False)
+                write_dict_as_csv(data_per_worker, os.path.splitext(answer_path)[0] + f'_votes_per_worker{question_name_suffix}{test_method}.csv')
 
 
         bonus_file = os.path.splitext(answer_path)[0] + '_quantity_bonus_report.csv'
         quantity_bonus_df = calc_quantity_bonuses(full_data, list_of_req, bonus_file)
-        if use_condition_level:
-            votes_to_use = vote_per_condition
-        else:
-            votes_to_use = votes_per_file
 
-        logger.info(quality_bonus)
         if quality_bonus:
             quality_bonus_path = os.path.splitext(answer_path)[0] + '_quality_bonus_report.csv'
             if 'all' not in list_of_req:
                 quantity_bonus_df = calc_quantity_bonuses(full_data, ['all'], None)
-            
+            if use_condition_level:
+                votes_to_use = vote_per_condition
+            else:
+                votes_to_use = votes_per_file
             calc_quality_bonuses(quantity_bonus_df, accepted_sessions, votes_to_use, config, quality_bonus_path,
                                  n_workers, test_method, use_condition_level)
 
@@ -1509,9 +1438,12 @@ def analyze_results(config, test_method, answer_path, amt_ans_path,  list_of_req
             text = f"Average Inter-rater reliability of study: {avg_irr:.3f}"
 
         logger.info(text)
+    
 
 
 if __name__ == '__main__':
+    
+
     parser = argparse.ArgumentParser(description='Utility script to evaluate answers to the pcrowd batch')
     # Configuration: read it from mturk.cfg
     parser.add_argument("--cfg", required=True,
@@ -1565,9 +1497,11 @@ if __name__ == '__main__':
         problem_tokens = problem_tokens_a
     elif test_method == 'tlp_b':
         problem_tokens = problem_tokens_b
-
+        
     np.seterr(divide='ignore', invalid='ignore')
-    question_names = [f"q{i}" for i in range(1, int(config['general']['number_of_questions_in_rating']) + 1)]
+    # TODO: check why this was used in Template A.
+    #question_names = [f"q{i}" for i in range(1, (int(config['general']['number_of_questions_in_rating']) * len(problem_tokens)) + 1)]
+    question_names = [f"q{i}" for i in range(1, (int(config['general']['number_of_questions_in_rating']) + 1))]
     
     # setup the logging system
     logger = logging.getLogger("my_logger")
@@ -1578,6 +1512,7 @@ if __name__ == '__main__':
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
     logger.info(f"Start analyzing the results of {test_method} test")
-
+    
     # start
-    analyze_results(config, test_method,  answer_path, amt_ans_path,  list_of_req, args.quality_bonus)
+    for pt in problem_tokens:
+        analyze_results(config, "acr"+pt,  answer_path, amt_ans_path,  list_of_req, args.quality_bonus)
