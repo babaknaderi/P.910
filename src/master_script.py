@@ -219,7 +219,7 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
     config['instruction_html'] = hit_app_html_cfg['instruction_html']
     config['rating_questions'] = hit_app_html_cfg['rating_questions']
     config['rating_answers'] = hit_app_html_cfg['rating_answers']
-    config['is_template_b'] = hit_app_html_cfg['is_template_b']
+    config['is_template_b'] = 'true' if hit_app_html_cfg['tamplate'].lower() in ['b','c'] else 'false'
 
     config['cookie_name'] = hit_app_html_cfg['cookie_name'] if 'cookie_name' in hit_app_html_cfg else \
         f'acr_{get_rand_id()}'
@@ -529,7 +529,7 @@ def get_path(test_method):
                                              'assets_master_script/result_parser_template.cfg')
 
     #   for teleport
-    tlp_template_path_a = os.path.join(os.path.dirname(__file__), 'template/telep_template_h_rephrase.html')
+    tlp_template_path_a = os.path.join(os.path.dirname(__file__), 'template/avatar_template.html')
     tlp_cfg_template_path = os.path.join(os.path.dirname(__file__),
                                          'assets_master_script/result_parser_template.cfg')
 

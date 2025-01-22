@@ -3,6 +3,12 @@ from urllib.parse import urljoin
 
 import pandas as pd
 from azure.storage.blob import ContainerClient
+from enum import Enum
+
+class Template(Enum):
+    TEMPLATE_A = "1"
+    TEMPLATE_B = "2"
+    TEMPLATE_C = "3"
 
 TMP_FOLDER = r'C:\Temp\teleport'
 RATING_SAS = ''
@@ -22,21 +28,33 @@ cq_storage_base_url = 'https://cqstorageacct.blob.core.windows.net/teleport/'
 cq_storage_client = ContainerClient.from_container_url(cq_storage_base_url, credential=cq_storage_SAS)
 
 overwrite = False
+# define three templates a, b and c as static to be used in the code
+Template 
 
-def set_config_relative_urls(is_template_b):
+
+
+
+def set_config_relative_urls(template):
     global gold_relative_url, tran_relative_url, trap_relative_url, config_relative_url
-    if is_template_b:
+    if template == Template.TEMPLATE_B:
         # Template B
         gold_relative_url = 'configs/master/09262024/tlp_gold_clips_b.csv'
         tran_relative_url = 'configs/master/09262024/tlp_training_clips_b.csv'
         trap_relative_url = 'configs/master/09262024/tlp_trapping_clips_b.csv'
         config_relative_url = 'configs/master/09262024/master_b.cfg'
-    else:
+    elif template == Template.TEMPLATE_A:
         # template A
         gold_relative_url = 'configs/master/12062023/tlp_gold_clips.csv'
         tran_relative_url = 'configs/master/12062023/tlp_training_clips.csv'
         trap_relative_url = 'configs/master/12062023/tlp_trapping_clips.csv'
         config_relative_url = 'configs/master/12062023/master.cfg'
+    elif template == Template.TEMPLATE_C:
+        # Template C
+        # TODO add them to the storage
+        gold_relative_url = 'configs/master/09262024/tlp_gold_clips_b.csv'
+        tran_relative_url = 'configs/master/09262024/tlp_training_clips_b.csv'
+        trap_relative_url = 'configs/master/09262024/tlp_trapping_clips_b.csv'
+        config_relative_url = 'configs/master/09262024/master_c.cfg'
 
 def create_local_config(folder, relative_url, version):
     blob = subjective_client.get_blob_client(relative_url)
@@ -156,10 +174,10 @@ def merge_clips_into_side_by_side(merge_csv_file):
 
 
 csv_file = r'C:\data\studies\teleport\template_b\rating_source_b.csv'
-is_template_b = True
+template = Template.TEMPLATE_C
 eval_ver = '09_26_2024'
 csv_output = 'clips.csv'
-set_config_relative_urls(is_template_b)
+set_config_relative_urls(template)
 create_evaluation(csv_file, eval_ver, csv_output)
 
 ## merge clips side by side for subjective evaluation using a csv file
