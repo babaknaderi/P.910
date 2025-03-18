@@ -116,6 +116,12 @@ def check_if_session_accepted(data):
         accept = False
         msg += "Your HIT was rejected because you rated one or more control clip incorrectly. Control clips are ones that we know that answer for and should be very easy to rate (they are clearly very good or very poor). We include control clips in the HIT to ensure raters are paying attention during the entire HIT and their environment hasn't changed"
         failures.append('gold_question')
+    
+    # complete_answered should be 1
+    if data['complete_answered'] != 1:
+        accept = False
+        msg += "Answering to all questions is required; "
+        failures.append('incomplete_answer')
 
     """
     if data['all_videos_played'] != int(config['acceptance_criteria']['all_video_played_equal']):
@@ -177,7 +183,7 @@ def check_video_played(row, method):
     """
     question_played = 0
     try:
-        if method in ['acr', 'acr-hr', 'dcr', 'ccr',  'tlp_a', 'tlp_b']:
+        if method in ['acr', 'acr-hr', 'dcr', 'ccr',  'tlp_a', 'tlp_b', 'tlp_c', 'tlp_pt']:
             for q_name in question_names:
                 if int(float(row[f'answer.video_n_finish_{q_name}'])) > 0:
                     question_played += 1
@@ -198,15 +204,18 @@ def check_tps_tlpb(row, method):
     tp_url = row[config['trapping']['url_found_in']]
     tp_correct_ans = [int(float(row[config['trapping']['ans_found_in']]))]
     given_ans = []
+    # only conside problem_tokens that does not contain _pt_
+    problem_tokens_consider = [pt for pt in problem_tokens if 'pt_' not in pt]
     try:
         for q_name in question_names:
             if tp_url in row[f'answer.{q_name}_url']:
                 # found a trapping clips question
-                for tp in problem_tokens:
+                for tp in problem_tokens_consider:
+                    print(tp)
                     given_ans.append(int(float(row[f'answer.{q_name}_{tp}'])))                                
                         
         # create an array with size of len(question_names) and fill it with the correct answer
-        tp_correct_ans_all = [tp_correct_ans[0]] * len(problem_tokens)
+        tp_correct_ans_all = [tp_correct_ans[0]] * len(problem_tokens_consider)
         # check if two arrays (tp_correct_ans_all and given_ans)are equal
         if tp_correct_ans_all == given_ans:        
             correct_tps = 1
@@ -226,7 +235,7 @@ def check_tps(row, method):
     :param method: acr, dcr, or acr-hr
     :return:
     """
-    if method == 'tlp_b':
+    if method in ['tlp_b', 'tlp_c', 'tlp_pt']:
         return check_tps_tlpb(row, method)
     correct_tps = 0
     incorrect_tps = 0
@@ -282,7 +291,9 @@ def check_variance(row, method):
                 order = 1 if row[f'answer.{q_name}{question_name_suffix}_order'] == 'pr' else -1
                 r.append(int(row[f'answer.{q_name}{question_name_suffix}']) * order)
             else:
-                for pt in problem_tokens:
+                # only use problem tokens tha have been reqired
+                problem_tokens_consider = [pt for pt in problem_tokens if 'pt_' not in pt]
+                for pt in problem_tokens_consider:
                     r_pt.append(int(float(row[f'answer.{q_name}{question_name_suffix}_{pt}'])))
                 # r.append(int(float(row[f'answer.{q_name}{question_name_suffix}'])))
                 if len(r_pt) > 1:
@@ -305,13 +316,20 @@ def check_gold_question_tlepb(row):
     details = {}
     try:
         gq_url = row[config['gold_question']['url_found_in']]
+        # format should be in , check if it exist in config
+        if 'gold_ans_format' not in config['gold_question']:
+            print('gold_ans_format is not defined in config file')
+            raise Exception('gold_ans_format is not defined in config file')
+        format = config['gold_question']['gold_ans_format']
+        
         # formated as "(lookslike,facialexpression)", _ means whatever is correct  
         correct_ans_text =  row[config['gold_question']['ans_found_in']]
         correct_ans_text= correct_ans_text.replace('(', '').replace(')', '').replace(' ', '')
-        correct_looslike, correct_facialexpression = correct_ans_text.split(',')
-        correct_looslike = int(correct_looslike) if correct_looslike != '_' else None
-        correct_facialexpression = int(correct_facialexpression) if correct_facialexpression != '_' else None
-        correct_ans ={ 'lookslike': correct_looslike, 'facialexpressions': correct_facialexpression}
+        correct_anses =  correct_ans_text.split(',')
+        item_orders = format.replace('(', '').replace(')', '').replace(' ', '').split(',')
+        correct_ans = {}
+        for i, item in enumerate(item_orders):
+            correct_ans[item] = int(correct_anses[i]) if correct_anses[i] != '_' else None        
 
         gq_var = int(float(config['gold_question']['variance']))
         details ={'gq_url': gq_url, 'gq_correct_ans':correct_ans_text}
@@ -320,7 +338,7 @@ def check_gold_question_tlepb(row):
             if gq_url in row[f'answer.{q_name}_url']:
                 # found a gold standard question
                 correct_ans_count = 0
-                for pt in problem_tokens_b:
+                for pt in item_orders:
                     given_ans = row[f'answer.{q_name}_{pt}'].lower().strip()
                     given_ans = int(float(given_ans))
                     details['given_ans_'+pt] =  given_ans             
@@ -329,7 +347,7 @@ def check_gold_question_tlepb(row):
                     else:
                         if given_ans in range(correct_ans[pt]-gq_var, correct_ans[pt]+gq_var+1):
                             correct_ans_count += 1
-                if correct_ans_count == len(problem_tokens_b):
+                if correct_ans_count == len(item_orders):
                     correct_gq = 1
                     return correct_gq, details
     except Exception as e:
@@ -344,7 +362,7 @@ def check_gold_question(row, method):
     :param row:
     :return:
     """
-    if method == 'tlp_b':
+    if method in ['tlp_b', 'tlp_c', 'tlp_pt']:
         return check_gold_question_tlepb(row)
     correct_gq = 0
     incorrect_gq = 0
@@ -436,6 +454,41 @@ def check_play_duration(row):
     return total_play_duration/total_duration
 
 
+def check_all_answered(row, method):
+    """
+    only relevant for Teleport_tp where participants should select one out of the reasons. Theoritically this should be checked in front-end before submission, here is to do a double check.
+
+    """
+    if method != 'tlp_pt':
+        return 1
+    
+    problem_token_consider =  [pt for pt in problem_tokens if 'pt_' in pt]    
+    # for each question at least one of the problem tokens should be included in answers (with a value lenght >0)
+    for q_name in question_names:
+        found = False
+        for pt in problem_token_consider:
+            if  f'answer.{q_name}_{pt}' in row and len(row[f'answer.{q_name}_{pt}'].strip()) > 0:
+                found = True
+                break
+        if not found:
+            return 0
+
+    return 1
+def extend_row_with_pt(row):
+    """
+    extend the row with the problem tokens when they are not available in the row
+
+    """
+    problem_token_consider =  [pt for pt in problem_tokens if 'pt_' in pt]
+    for q_name in question_names:
+        for pt in problem_token_consider:
+            if  f'answer.{q_name}_{pt}' not in row or len(row[f'answer.{q_name}_{pt}'].strip()) == 0:                
+                if 'other' in pt:
+                    row[f'answer.{q_name}_{pt}'] = None	
+                else:
+                    row[f'answer.{q_name}_{pt}'] = 0
+    return row
+
 def data_cleaning(filename, method, wrong_vcodes):
    """
    Data screening process
@@ -495,6 +548,9 @@ def data_cleaning(filename, method, wrong_vcodes):
 
         if 'answer.video_loading_duration_ms' in row:
             d['video_loading_duration'] = row['answer.video_loading_duration_ms']
+
+        # only for tlep_pt
+        d['complete_answered'] = 1 if method != 'tlp_pt' else check_all_answered(row, method)
             
         should_be_accepted, accept_failures = check_if_session_accepted(d)
 
@@ -510,7 +566,8 @@ def data_cleaning(filename, method, wrong_vcodes):
         d['failures'] = failures
 
         not_using_further_reasons.extend(failures)
-
+        if method == 'tlp_pt':
+            row = extend_row_with_pt(row)
         if should_be_used:
             d['accept_and_use'] = 1
             use_sessions.append(row)
@@ -550,6 +607,9 @@ def data_cleaning(filename, method, wrong_vcodes):
     # check rater_min_* criteria
     logger.info(f'length of worker list is {len(worker_list)}')
     logger.info(f'length of use_sessions is {len(use_sessions)}')
+    # write worker_list in tmp file same location
+    tmp_df = pd.DataFrame(worker_list)
+    tmp_df.to_csv(os.path.splitext(filename)[0] + '_tmp.csv')
 
     worker_list, use_sessions, num_rej_perform, block_list = evaluate_rater_performance(worker_list, use_sessions, True)
     worker_list, use_sessions, num_not_used_sub_perform, _ = evaluate_rater_performance(worker_list, use_sessions)
@@ -898,6 +958,7 @@ def calc_inter_rater_reliability(answer_list, overall_mos, test_method, use_cond
     :param overall_mos:
     :return:
     """
+    print('Calculate the inter-rater reliability... ****:', question_name_suffix)
     mos_name = method_to_mos[f"{test_method}{question_name_suffix}"]
 
     reliability_list = []
@@ -1033,13 +1094,24 @@ method_to_mos = {
     'tlp_arealistic': 'MOS_Realistic',
     'tlp_blookslike': 'MOS_LooksLike',
     'tlp_bfacialexpressions': 'MOS_FacialExpressions',
-
+    'tlp_ptrealism': 'MOS_Realism',
+    'tlp_ptpt_avsync': 'SUM_AVSync',
+    'tlp_ptpt_distortion': 'SUM_Distortion',
+    'tlp_ptpt_absencemicrodetails': 'SUM_AbsenceMicroDetails',
+    'tlp_ptpt_inaccuratelighting': 'SUM_InaccurateLighting',
+    'tlp_ptpt_unnaturaltextures': 'SUM_UnnaturalTextures',
+    'tlp_ptpt_noproblem': 'SUM_NoProblem',
+    'tlp_ptpt_other_text': 'FREE_TEXT_Other',
 }
 
 question_names = []
-
+# NOTE: IRR and quantity bonuses are calculated based on the first item in the problem_token list
 problem_tokens_a = ['trust', 'realistic', 'creepy', 'formal', 'comfortableusing', 'comfortableinteracting', 'appropriate', 'like']
 problem_tokens_b = ['facialexpressions', 'lookslike']
+problem_tokens_c = ['facialexpressions', 'lookslike','gesture_acc', 'realism']
+# items with _pt_ can be present or ansent in the csv file as they are checkboxes
+problem_tokens_pt = ['realism', 'pt_avsync', 'pt_distortion', 'pt_absencemicrodetails', 'pt_inaccuratelighting', 'pt_unnaturaltextures', 'pt_noproblem', 'pt_other_text']
+
 question_name_suffix = ''
 create_per_worker = True
 pvs_src_map = {}
@@ -1085,13 +1157,17 @@ def transform(test_method, sessions, agrregate_on_condition, is_worker_specific)
                 data_per_file[file_name] = []
             votes = data_per_file[file_name]
             try:
-                votes.append(int(float(session[f'answer.{question}_{question_name_suffix}'])))
+                if 'pt_other' in question_name_suffix:
+                    vote = {'text':session[f'answer.{question}_{question_name_suffix}']}
+                else:
+                    vote = int(float(session[f'answer.{question}_{question_name_suffix}']))
+                votes.append(vote)
                 cond =conv_filename_to_condition(file_name)
                 tmp = {'HITId': session['hitid'],
                     'workerid': session['workerid'],
                         'file':file_name,
                        'short_file_name': file_name.rsplit('/', 1)[-1],
-                        'vote': int(float(session[f'answer.{question}_{question_name_suffix}']))}
+                        'vote': vote}
 
                 tmp.update(cond)
                 data_per_worker.append(tmp)
@@ -1112,7 +1188,7 @@ def transform(test_method, sessions, agrregate_on_condition, is_worker_specific)
                 and (config['accept_and_use']['outlier_removal'].lower() in ['true', '1', 't', 'y', 'yes']):
 
             v_len = len(votes)
-            if v_len >5:
+            if v_len >5 and not question_name_suffix.startswith('pt_'):
                 #votes = outliers_z_score(votes)
                 votes = outliers_iqr(votes)
             v_len_after = len(votes)
@@ -1160,8 +1236,15 @@ def transform(test_method, sessions, agrregate_on_condition, is_worker_specific)
 
         tmp['n'] = count-1
         # tmp[mos_name] = abs(statistics.mean(votes))
-        tmp[mos_name] = statistics.mean(votes)
-        if tmp['n'] > 1:
+        if question_name_suffix.startswith('pt_'):
+            # agrregate as sum, and for others nothing
+            if 'pt_other' not in question_name_suffix:
+                tmp[mos_name] = sum(votes)
+            else:
+                tmp[mos_name] = len(votes)
+        else:
+            tmp[mos_name] = statistics.mean(votes)
+        if tmp['n'] > 1 and not question_name_suffix.startswith('pt_'):
             tmp[f'std{question_name_suffix}'] = statistics.stdev(votes)
             tmp[f'95%CI{question_name_suffix}'] = (1.96 * tmp[f'std{question_name_suffix}']) / math.sqrt(tmp['n'])
         else:
@@ -1185,7 +1268,8 @@ def transform(test_method, sessions, agrregate_on_condition, is_worker_specific)
                     and (config['accept_and_use']['outlier_removal'].lower() in ['true', '1', 't', 'y', 'yes']):
                 v_len = len(votes)
                 #votes = outliers_z_score(votes)
-                votes = outliers_iqr(votes)                
+                if not question_name_suffix.startswith('pt_'):
+                    votes = outliers_iqr(votes)                
                 v_len_after = len(votes)
                 if v_len != v_len_after:
                     outlier_removed_count += v_len-v_len_after                                                            
@@ -1194,11 +1278,15 @@ def transform(test_method, sessions, agrregate_on_condition, is_worker_specific)
             tmp = {**tmp, **condition_detail[key]}
             tmp['n'] = len(votes)
             if tmp['n'] > 0:
-                # tmp[mos_name] = abs(statistics.mean(votes))
-                tmp[mos_name] = statistics.mean(votes)
+                if not question_name_suffix.startswith('pt_'):                    
+                    tmp[mos_name] = statistics.mean(votes)
+                elif 'pt_other' not in question_name_suffix:
+                    tmp[mos_name] = sum(votes)
+                else:
+                    tmp[mos_name] = len(votes)  
             else:
                 tmp[mos_name] = None
-            if tmp['n'] > 1:
+            if tmp['n'] > 1 and not question_name_suffix.startswith('pt_'):
                 tmp[f'std{question_name_suffix}'] = statistics.stdev(votes)
                 tmp[f'95%CI{question_name_suffix}'] = (1.96 * tmp[f'std{question_name_suffix}']) / math.sqrt(tmp['n'])
             else:
@@ -1478,37 +1566,36 @@ def analyze_results(config, test_method, answer_path, amt_ans_path,  list_of_req
             if create_per_worker:
                 #write_dict_as_csv(data_per_worker, os.path.splitext(answer_path)[0] + f'_votes_per_worker{question_name_suffix}.csv')
                 data_per_worker_df.to_csv(os.path.splitext(answer_path)[0] + f'_votes_per_worker{question_name_suffix}.csv', index=False)
+            # calculate the rest of statistics including irr and bonus only based on the first problem token item
+            if suffix == problem_tokens[0]:
+                bonus_file = os.path.splitext(answer_path)[0] + '_quantity_bonus_report.csv'
+                quantity_bonus_df = calc_quantity_bonuses(full_data, list_of_req, bonus_file)
+                if use_condition_level:
+                    votes_to_use = vote_per_condition
+                else:
+                    votes_to_use = votes_per_file
 
+                logger.info(quality_bonus)
+                if quality_bonus:
+                    quality_bonus_path = os.path.splitext(answer_path)[0] + '_quality_bonus_report.csv'
+                    if 'all' not in list_of_req:
+                        quantity_bonus_df = calc_quantity_bonuses(full_data, ['all'], None)
+                    
+                    calc_quality_bonuses(quantity_bonus_df, accepted_sessions, votes_to_use, config, quality_bonus_path,
+                                        n_workers, test_method, use_condition_level)                
+                inter_rate_reliability, avg_irr = calc_inter_rater_reliability( accepted_sessions, votes_to_use, test_method,
+                                                                                use_condition_level)
+                irr_path = os.path.splitext(answer_path)[0] + '_irr_report.csv'
+                inter_rate_reliability.to_csv(irr_path, index=False)
 
-        bonus_file = os.path.splitext(answer_path)[0] + '_quantity_bonus_report.csv'
-        quantity_bonus_df = calc_quantity_bonuses(full_data, list_of_req, bonus_file)
-        if use_condition_level:
-            votes_to_use = vote_per_condition
-        else:
-            votes_to_use = votes_per_file
+                if "min_inter_rater_reliability" in config['accept_and_use'] and \
+                        avg_irr < float(config['accept_and_use']['min_inter_rater_reliability']):
+                    text = f"Warning: Average Inter-rater reliability of this study {avg_irr:.3f} is below threshold. " \
+                        f"It is highly possible that many unreliable ratings are included."
+                else:
+                    text = f"Average Inter-rater reliability of study: {avg_irr:.3f}"
 
-        logger.info(quality_bonus)
-        if quality_bonus:
-            quality_bonus_path = os.path.splitext(answer_path)[0] + '_quality_bonus_report.csv'
-            if 'all' not in list_of_req:
-                quantity_bonus_df = calc_quantity_bonuses(full_data, ['all'], None)
-            
-            calc_quality_bonuses(quantity_bonus_df, accepted_sessions, votes_to_use, config, quality_bonus_path,
-                                 n_workers, test_method, use_condition_level)
-
-        inter_rate_reliability, avg_irr = calc_inter_rater_reliability( accepted_sessions, votes_to_use, test_method,
-                                                                         use_condition_level)
-        irr_path = os.path.splitext(answer_path)[0] + '_irr_report.csv'
-        inter_rate_reliability.to_csv(irr_path, index=False)
-
-        if "min_inter_rater_reliability" in config['accept_and_use'] and \
-                avg_irr < float(config['accept_and_use']['min_inter_rater_reliability']):
-            text = f"Warning: Average Inter-rater reliability of this study {avg_irr:.3f} is below threshold. " \
-                f"It is highly possible that many unreliable ratings are included."
-        else:
-            text = f"Average Inter-rater reliability of study: {avg_irr:.3f}"
-
-        logger.info(text)
+                logger.info(text)
 
 
 if __name__ == '__main__':
@@ -1533,7 +1620,7 @@ if __name__ == '__main__':
     parser.add_argument('--quality_bonus', help="Quality bonus will be calculated. Just use it with your final download"
                                                 " of answers and when the project is completed", action="store_true")
     args = parser.parse_args()
-    methods = ['dcr', 'acr', 'acr-hr', 'ccr', 'tlp_a', 'tlp_b']
+    methods = ['dcr', 'acr', 'acr-hr', 'ccr', 'tlp_a', 'tlp_b', 'tlp_pt', 'tlp_c']
     test_method = args.method.lower()
     assert test_method in methods, f"No such a method supported, please select between {methods} "
 
@@ -1565,6 +1652,10 @@ if __name__ == '__main__':
         problem_tokens = problem_tokens_a
     elif test_method == 'tlp_b':
         problem_tokens = problem_tokens_b
+    elif  test_method == 'tlp_pt':
+        problem_tokens = problem_tokens_pt
+    elif test_method == 'tlp_c':
+        problem_tokens = problem_tokens_c
 
     np.seterr(divide='ignore', invalid='ignore')
     question_names = [f"q{i}" for i in range(1, int(config['general']['number_of_questions_in_rating']) + 1)]

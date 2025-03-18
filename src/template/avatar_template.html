@@ -77,6 +77,7 @@ border-bottom-left-radius: 5px;  border-bottom-right-radius: 5px;}
 .scale label { display:block;}
 .scale .c { text-align: center;}
 .table > tbody > tr > td {padding:0;}
+.problem_token label {font-weight: normal; margin: 5px;}
 
 .bg1 {background-image: url("https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/clips_a.png");}
 .bg2 {background-image: url("https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/clips_b.png");}
@@ -147,14 +148,74 @@ var config ={
 	training_gold_clips: {{cfg.training_gold_clips}},
     knownQuestionInTrainingUrl:"{{cfg.training_trap_urls}}",
     knownQuestionInTrainingAns: "{{cfg.training_trap_ans}}",
-	useProblemToken: true,
+	
     knownQuestionUrl:"${TP_CLIP}",
     knownQuestionAns: "${TP_ANS}",
     randomizeTrainingQuestions:"true",
     randomizeRatingQuestions:"true",
     emailAddress: "{{cfg.contact_email}}",
 	is_template_b: "{{cfg.is_template_b}}",
+	useProblemToken: true,
 }
+/**
+var config ={
+	debug:"true",
+	cookieName:"acr_8IYN4J3V50",
+	qualificationCookieName:"qul_AUXH83YAD2",
+	qualificationValidFor:43200,
+	internet_speed_Mbps:30,
+	allowedMaxHITsInProject:4,
+	forceRetrainingInHours:1,
+    showSetupEveryMinutes:30,
+    // could be 9 or 5
+    scale_points: 5,
+    // qualification
+	min_screen_refresh_rate: 30,
+	min_resolution:{w: 1920, h:1080},
+	// tablets will be included in PC, values:PC,MOBILE
+	device_accepted_device:["PC"],
+	viewing_distance:{
+		'img_path':'https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/distance/img3_{0}.jpg',
+		'base_id': '0',
+		'too_close':'3',
+		'normal':'5',
+		'too_far':'7'
+	},
+	block_matrix:{
+		'img': 'https://audiosamplesp808.blob.core.windows.net/p910-assets/imgs/block_matrix/m5/Yzo2X3Q6Mw==.jpg',
+		'circles': 8.0,
+		'triangles': 6.0,
+		'dummy':'dummy',
+		'max_tries': 4
+	},
+
+	plates:{
+		"plate3":29,
+		"plate4":5
+	},
+	useTrappingQuestion: 0,
+	useRepeatedQuestion: 0,
+	ratingQuestions: {"1": {"id": "lookslike", "text": "The avatar (left) <b>looks like</b> the person (right) in the video."},
+"2": {"id": "facialexpressions", "text": "The <b>avatar’s facial expressions</b> (left) are accurate with the video (right)"},
+"3": {"id": "gesture_acc", "text": "The <b>avatar’s gestures (body and hands)</b> (left) accurately match the person's gestures in the video (right)"},
+"4": {"id": "realism", "text": "The <b>avatar</b> (left) is realistic"},
+
+},
+	ratingAnswers: [ ['5', 'Strongly agree'], ['4', 'Agree'], ['3', 'Neutral'], ['2', 'Disagree'], ['1', 'Strongly disagree']],
+	questionUrls: ['https://mlvideopub.blob.core.windows.net/teleportvideo/evaluations/10_14_2024/expression/sidebyside/p3d_0/ind_14_video6_with_sound_merged.mp4', 'https://mlvideopub.blob.core.windows.net/teleportvideo/evaluations/10_14_2024/expression/sidebyside/p3d_0/ind_11_video6_with_sound_merged.mp4', 'https://mlvideopub.blob.core.windows.net/teleportvideo/evaluations/10_14_2024/speak/sidebyside/p3d_90/ind_9_video11_with_sound_merged.mp4', 'https://mlvideopub.blob.core.windows.net/teleportvideo/evaluations/10_14_2024/speak/sidebyside/LivePortrait/LS_Vishak_Take_9--LS_Vishak_Take_9_merged.mp4', 'https://mlvideopub.blob.core.windows.net/teleportvideo/evaluations/10_14_2024/speak/sidebyside/avanti/Ashkan_20231121_speak_Avanti_clipped_merged.mp4', 'https://mlvideopub.blob.core.windows.net/teleportvideo/evaluations/10_14_2024/speak/sidebyside/p3d_0/ind_9_video6_with_sound_merged.mp4', 'https://mlvideopub.blob.core.windows.net/teleportvideo/evaluations/10_14_2024/speak/sidebyside/holo3d_0/zafiirah_sentence_2024_03_06_0_merged.mp4', 'https://mlvideopub.blob.core.windows.net/teleportvideo/evaluations/10_14_2024/speak/sidebyside/copresence_pro_ai_0/stefan_ai_angle0_merged.mp4', 'https://mlvideopub.blob.core.windows.net/teleportvideo/evaluations/10_14_2024/speak/sidebyside/p3d_90/ind_18_video11_with_sound_merged.mp4', 'https://mlvideopub.blob.core.windows.net/teleportvideo/evaluations/10_14_2024/speak/sidebyside/copresence_pro_ai_0/titus_ai_angle0_merged.mp4', 'https://mlvideopub.blob.core.windows.net/teleportvideo/trap/side_by_side/copresence_vishak_speak_merged_0_merged_1.mp4', 'https://mlvideopub.blob.core.windows.net/teleportvideo/gold/side_by_side/sm4.mp4'],
+    trainingUrls: ['https://mlvideopub.blob.core.windows.net/teleportvideo/training/sidebyside/LS_Cooper_Take_9_speak_cropped_merged_src.mp4', 'https://mlvideopub.blob.core.windows.net/teleportvideo/training/sidebyside/LS_Jesse_Take_14_emote_cropped_merged_src_noaudio.mp4', 'https://mlvideopub.blob.core.windows.net/teleportvideo/training/sidebyside/Meeting%20with%20Ashkan-20231110-Meeting%20Recording_mrged.mp4'],
+	training_gold_clips: [{'url': 'https://mlvideopub.blob.core.windows.net/teleportvideo/training/sidebyside/LS_Cooper_Take_9_speak_cropped_merged_src.mp4', 'lookslike': {'ans': '1', 'msg': 'Level of looks like should be Strongly Agree', 'var': 1}, 'facialexpressions': {'ans': '5', 'msg': 'Level of facial expression realism should be Strongly Agree', 'var': 1}}, {'url': 'https://mlvideopub.blob.core.windows.net/teleportvideo/training/sidebyside/LS_Jesse_Take_14_emote_cropped_merged_src_noaudio.mp4', 'lookslike': {'ans': '1', 'msg': 'Level of looks like should be Strongly Agree', 'var': 1}, 'facialexpressions': {'ans': '5', 'msg': 'Level of facial expression realism should be  Strongly Agree', 'var': 1}}, {'url': 'https://mlvideopub.blob.core.windows.net/teleportvideo/training/sidebyside/Meeting%20with%20Ashkan-20231110-Meeting%20Recording_mrged.mp4', 'lookslike': {'ans': '5', 'msg': 'Level of looks like should be Strongly Disagree', 'var': 1}, 'facialexpressions': {'ans': '5', 'msg': 'Level of facial expression realism should be  Disagree', 'var': 1}}],
+    knownQuestionInTrainingUrl:"https://mlvideopub.blob.core.windows.net/teleportvideo/trap/side_by_side/copresence_dharma_speak_merged_0_merged_1.mp4",
+    knownQuestionInTrainingAns: "1",
+	
+    knownQuestionUrl:"https://mlvideopub.blob.core.windows.net/teleportvideo/trap/side_by_side/copresence_vishak_speak_merged_0_merged_1.mp4",
+    knownQuestionAns: "1",
+    randomizeTrainingQuestions:"true",
+    randomizeRatingQuestions:"true",
+    emailAddress: "ic3ai@outlook.com",
+	is_template_b: "fale",
+	useProblemToken: "true",
+}**/
 
 //---- for video player
 max_accepted_extra_playing_time_sec = 2.5;
@@ -614,6 +675,11 @@ function loadTextPlaceHolders(){
 		place_holder_question = "Watch the video with <b>avatar on left</b> and <b>real video on right</b>. How well does the avatar represent the person and their facial expression in the video?";
 		$('.task_description').html(place_holder_task);
 		$('.rating_question_text').html(place_holder_question);
+	}
+	if (config['useProblemToken']){
+		place_holder_task = "Imagine you want to participate in <b>an online meeting related to your work</b>. You or your counterpart will be represented by an avatar. For each question, please watch the provided video. On <b>left</b> there is an avatar representation whereas <b>on right there is the real video</b>. Provide your opinion on <b>how realistic the avatar represents the person in the video</b>, and <b>what issues should be addressed to make it more realistic</b>.";
+		$('.task_description').html(place_holder_task);
+		
 	}
 }
 
@@ -1431,6 +1497,7 @@ function playedVideoTraining(id){
 	if (trainingStimulusPlayed.reduce(getSum, 0) ==  trainingStimulusPlayed.length){
 		createCookie(config['cookieName']+"_training","un_important",config['forceRetrainingInHours']*60);
 	}
+	
 	if ($('span[id="'+id+'"]').attr("data-src-clip") == config['knownQuestionInTrainingUrl']){
 		element = $('input[name^="t{0}_"]'.f(id_num));
 		element.unbind();
@@ -1438,7 +1505,7 @@ function playedVideoTraining(id){
 	}
 	training_clip = getGoldQuestionInTrainingInfo($('span[id="' + id + '"]').attr("data-src-clip"));
 	console.log(training_clip);
-	if (training_clip != null) {
+	if (training_clip != null){ 
 		console.log("was the gold");
 		element = $('input[name^="'+id+'_"]');
 		element.unbind('change');
@@ -1487,12 +1554,14 @@ function onValueChangeForTpQuestionInTraining(){
 	if the answer is correct, change the value of tp_check to 0.
 */
 function onValueChangeForTpQuestion(){
-	if(!('knownQuestionAns' in config))
-		return;
-	if ($( this ).val()  == parseInt(config['knownQuestionAns']))
-		$('#tp_check').val(0);
-	else
-		$('#tp_check').val(-1);
+	if(('knownQuestionAns' in config)){	
+		if ($( this ).val()  == parseInt(config['knownQuestionAns']))
+			$('#tp_check').val(0);
+		else
+			$('#tp_check').val(-1);
+	}else{
+		return ;
+	}
 	//console.log("gc_check"+$('#tp_check').val())
 }
 
@@ -1507,12 +1576,13 @@ function playedVideoQ(id){
 	played= $("#video_n_finish_{0}".f(id)).val();
 	if (played== 0 )return;
 	console.log("playedVideoQ  continue");
-
+/** not racking TP answer any more
 	if ($('span[id="'+id+'"]').attr("data-src-clip") == config['knownQuestionUrl']){
 		element = $('input[name^="q{0}_"]'.f(id_num));
 		element.unbind();
 		element.on('change', onValueChangeForTpQuestion);
 	}else{
+	**/
 		$('input[name^="q{0}_"]'.f(id_num)).off('change');
 		console.log("playedVideoQ remove change listener");
 		// check if already this HIT is counted
@@ -1520,7 +1590,9 @@ function playedVideoQ(id){
 			updateCounterCookie(config['cookieName']+"_counter",1);
 			hitCounterIncreased=true
 		}
-	}
+		// if there is inputs with name starining with q{0}_pt_ then add check_required_fields on change
+		$('input[name^="q{0}_pt_"]'.f(id_num)).on('change', check_required_fields);
+//	}
 }
 
 /*
@@ -1783,65 +1855,55 @@ function getTelepScaleProblemToken(is_training){
 	
     var overhead = '<div class="tab-pane fade {2}" id="'+p+'{0}-panel" role="tabpanel" aria-labelledby="'+p+'{0}-tab"><p></p>'+
 	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
-	//'<p style="margin-top:10px;">{0}. Watch the following video clip and specify how much you agree with each statement? </p> <div class="row"> <p align="center"> '+
-		'<p style="margin-top:10px;" class="rating_question_text">{0}. Imagine you want to participate in <b>an online meeting related to your work</b>. In that meeting, <b>you or your counterpart</b> will be represented as shown in the following video. </br>Watch the video clip and specify how much you agree with each statement.</p> <div class="row"> <p align="center"> '+
+	'<p style="margin-top:10px;" class="rating_question_text">{0}.1. Imagine you want to participate in <b>an online meeting related to your work</b>. In that meeting, <b>you or your colleague</b> (right) will be represented by an avatar (left) as shown in the video below. </br>Watch the video and rate how much you agree with following statement: The <b>avatar</b> (left) is realistic .</p> <div class="row"> <p align="center"> '+
 	'<span class="velmnt" id="'+p+'{0}" data-src-clip="{1}" data-onfinished="playedVideoTraining" data-scale="{{cfg.video_player}}"></span> </p> '+	
 	' </div> </div> <div class="col-sm-2"></div> </div> ' +
 	//'<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+'<fieldset id="fieldset_Q{0}" class="trainingFieldset" title="">'+
-	'<div class="row"> <div class="col-sm-2"></div>	<div class="col-sm-8"> <fieldset id="fieldset_'+p+'{0}" class="trainingFieldset" title="">'+
-	'<table class="table questionnaire">  <thead>   <tr>  <th scope="col" style="width: 50%;">Statement</th>'+
-	'<th scope="col" class="text-center" style="width: 10%;">Strongly agree</br>(++)</th> '+
-	'<th scope="col" class="text-center"  style="width: 10%;">Agree</br>(+)</th> '+
-	'<th scope="col" class="text-center"  style="width: 10%;">Neutral</br>(O)</th> '+
-	'<th scope="col" class="text-center"  style="width: 10%;">Disagree</br>(-)</th> '+
-	'<th scope="col" class="text-center"  style="width: 10%;">Strongly disagree</br>(--)</th> '+
-	'</tr>  </thead>  <tbody>'; 
+	'<div class="row">	<div class="col-sm-4"></div>	<div class="col-sm-4">'+
+	'<fieldset id="fieldset_t{0}.1" class="trainingFieldset" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The <b>avatar</b> (left) is realistic</th><th class="c" >Score</th></tr></thead><tbody>'+
+	getACRScale("agree", is_training);
 	
-	var postfix = ' </tbody> </table> </fieldset> </div> <div class="col-sm-2"></div> </div>';
+	var postfix = ' </tbody> </table> </fieldset> </div> <div class="col-sm-4"></div> </div>';
 
-    answers = config['ratingAnswers'];
+	var problem_toke_prefix ='<div class="row">	<div class="col-sm-4"></div>	<div class="col-sm-4">'+
+	'<p style="margin-top:10px;" >{0}.2. Specify the issues (or no problem):?</p>  '+
+	'<div class="row">'+
+	'<fieldset id="fieldset_t{0}.2" class="trainingFieldset" title=""><table  cellspacing="0" cellpadding="0"><tbody>';
 
-	let tp = get_a_tp();
-	postfix = postfix + '<input type="hidden" name="'+p+'{0}_tpid" value="'+tp['tp_id']+'">';
+	var problem_toke_postfix = '</tbody></table></fieldset></div></div>';
+	
 
-	questions = {...config['ratingQuestions']};
+
+	questions ={"1": {"id": "avSync", "text": "Audio and video are not in sync"},
+	"2": {"id": "distortion", "text": "Distortion on image"},
+	"3": {"id": "absenceMicrodetails", "text": "Absence of microdetails and imperfections"},
+	"4": {"id": "inaccurateLighting", "text": "Inaccurate lighting and shadows"},
+	"5": {"id": "unnaturalTextures", "text": "Unnatural textures and materials"},
+	//"6": {"id": "unnaturalMovements", "text": "Unnatural movements and gestures"},
+	//"7": {"id": "unnaturalExpressions", "text": "Unnatural facial expressions and lip-syncing"},
+	"8": {"id": "noProblem", "text": "No problem"},
+	};
+	questions = {...questions};
 	config['numberOfRatingQuestions'] = Object.keys(questions).length;
 
-	if (config['useTrappingQuestion'] ==1){
-		index = config['numberOfRatingQuestions']+1;
-		questions[index.toString()] = tp;
-		}
+	problem_template = '<div class= "problem_token"> <input type="checkbox" value="1" id="{0}" name="{0}" > <label for="{0}">{1}</label></div>';	
+					
+				
 
-	r = range(config['numberOfRatingQuestions']+config['useTrappingQuestion']);
-	r = shuffle(r);
-	order = r.join('_');
-	tmp_list = order.split("_");
+	var html = overhead + postfix + problem_toke_prefix;
 
-    var html = overhead;
 
-	// select one of the first three items randomly and repeat it somewhere between the last 4 items
-	var first_three_q =[]
-	let insert_after = tmp_list.length - Math.floor(Math.random() * 3)-1;
+	for (const [key, value] of Object.entries(questions)) {
+		tmp = problem_template.f("t{0}_pt_"+value['id'], value['text']);
+		html = html + tmp;
+	}
+	let req = "";
+	if (!is_training) 
+		req = "required";
+	others = '<div class= "problem_token"> <input type="text"  name="t{0}_pt_other_text" placeholder="Others - please specify other issues"  style="width: 100%;" '+req+'> </div>'
 
-    for (i=0; i<tmp_list.length; i++){
-        tmp = questions[tmp_list[i]];
-		if (i<3){
-			first_three_q.push(tmp);
-		}
-		tmp = getRatingSection(p, tmp['id'], tmp['text'], answers);
-        tmp = tmp.replace("_elmt_X", "_elmt_" + i);
-        html = html + tmp;
-		if (i==insert_after && config['useRepeatedQuestion'] ==1){
-			// randomly select one item from first_three_q
-			let r_item = first_three_q[Math.floor(Math.random() * first_three_q.length)];			
-			repeated_item = getRatingSection(p,'repeatingitem', r_item['text'], answers);
-			postfix = postfix + '<input type="hidden" name="'+p+'{0}_repeatedid" value="'+r_item['id']+'">';
-			// _i need to be corrected
-			repeated_item = repeated_item.replace("_elmt_X", "_elmt_" + i);
-			html = html + repeated_item;
-		}
-    }
-	html = html + postfix;
+
+	html = html + others + problem_toke_postfix;
     if (!is_training){
         html = html.replaceAll("t{0}", "q{0}").replaceAll("trainingFieldset", "ratingFieldset").replaceAll("T{0}", "Q{0}").replaceAll("playedVideoTraining", "playedVideoQ");
     }
@@ -1925,6 +1987,13 @@ function getACRScale(type, is_training){
 	let p ='q';
 	if (is_training) p = 't';
 
+	template_agree =
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_realism" value="5">Strongly Agree</label></div></td><td class="c">5</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_realism" value="4">Agree</label></div></td><td class="c">4</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_realism" value="3">Neutral</label></div></td><td class="c">3</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_realism" value="2">Disagree</label></div></td><td class="c">2</td></tr>'+
+	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}_realism" value="1"required="">Strongly Disagree</label></div></td><td class="c">1</td></tr>';
+
 	template5 =
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="5">Excellent</label></div></td><td class="c">5</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="4">Good</label></div></td><td class="c">4</td></tr>'+
@@ -1944,11 +2013,14 @@ function getACRScale(type, is_training){
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label></div></td><td class="c">2</td></tr>'+
 	'<tr><td><div class="radio" ><label ><input type="radio" name="'+p+'{0}" value="1"required="">Bad</label></div></td><td class="c">1</td></tr>';
 
-	if (type== 5){
+	if (type== "5"){
 		return template5;
 	}
-	if (type== 9){
+	if (type== "9"){
 		return template9;
+	}
+	if (type== "agree"){
+		return template_agree;
 	}
 	return '';
 }
@@ -2023,23 +2095,79 @@ function generate_rating_section(){
 		list_q = get_list_of_inputs_in_html(internal_html);
 		// drop *_tpid and *_repeatedid from list_q
 		list_q = list_q.filter(function(item) {
-			return !item.includes('_tpid') && !item.includes('_repeatedid');
+			return !item.includes('_tpid') && !item.includes('_repeatedid') && !item.includes('_pt_');
 		});
 		unansweredQuestions = new Set([...unansweredQuestions, ...list_q]);
+
+
+		let problem_token_fields = $(internal_html).find('fieldset[id$=".2"]');  
+		// get the first one if there is any
+		if (problem_token_fields.length > 0){
+			ptf = problem_token_fields[0];
+			id = ptf.id;
+			q_id = id.split('_')[1].split('.')[0];
+			// add q9_issue to unansweredQuestions
+			unansweredQuestions.add(q_id+'_issue');
+		}
 	}
 
 }
 
+function check_required_fields(){
+	// get the parent fieldset of this, and list of all checkboxes in it
+	var field_set = this.closest('fieldset');
+	var checkboxes = field_set.querySelectorAll('input[type="checkbox"]');
+	var textField = field_set.querySelector('input[type="text"]');
+	var isChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+	if (isChecked) {
+		textField.removeAttribute('required');
+	} else {
+		textField.setAttribute('required', 'required');
+	}
+}
+
+function check_issue_if_answered(id){
+	console.log('check_issue_if_answered: '+id);
+	field_set_id = 'fieldset_'+id.split('_')[0]+'.2';
+	ptf = document.getElementById(field_set_id);
+	if (ptf){
+		var checkboxes = ptf.querySelectorAll('input[type="checkbox"]');
+		var textField = ptf.querySelector('input[type="text"]');
+		var isChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+		if (isChecked) {
+			return true
+		} else {
+			if (textField.value.trim().length == 0){
+				console.log('check_issue_if_answered: now answer is given: '+id);
+				return false;
+			}else{
+				return true;
+			}
+		}
+	}else{
+		console.log('check_issue_if_answered: fieldset not found for id: '+id);
+		return false;
+	}
+
+}
 function help_which_questions_remain(){	
 	msg = "";
 	// create a Set and add all questions
 	unanswered = new Set();
 	// check if any question that its name is in unansweredQuestions is not answered
 	for (let a of unansweredQuestions){
-		// check if a radiobox with name a is answered
-		if ($("input[name='{0}']:checked".f(a)).length == 0){
-			console.log(a);
-			unanswered = unanswered.add(questionName2Text(a));
+		// check if _issue is in the name
+		if (a.includes('_issue')){
+			// check if the issue is answered
+			if (!check_issue_if_answered(a)){
+
+				unanswered = unanswered.add(questionName2Text(a));
+			}
+		}else{
+			// check if a radiobox with name a is answered
+			if ($("input[name='{0}']:checked".f(a)).length == 0){
+				unanswered = unanswered.add(questionName2Text(a));
+			}
 		}
 	}	
 	if (unanswered.size>0 ){
@@ -2059,8 +2187,14 @@ function questionName2Text(qName){
 	console.log('questionName2Text: '+qName);
 	const RE_DATE = /q(\d+)_(\w+)/;
 	const matchObj = RE_DATE.exec(qName);
-	const template = "Q {0}";	
-	return template.f(matchObj[1]);
+	// if len >2
+	let post_fix = ""
+	if (qName.includes('_issue')){ 
+		post_fix = "-issue"
+	}
+	const template = "Q {0} {1}";
+	
+	return template.f(matchObj[1],post_fix);
 }
 
 
