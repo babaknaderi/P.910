@@ -8,14 +8,16 @@ from enum import Enum
 class Template(Enum):
     TEMPLATE_A = "1"
     TEMPLATE_B = "2"
-    TEMPLATE_C = "3"
+    TEMPLATE_PROBLEM_TOKEN = "3" # this is basically similar to template B filewise
 
 TMP_FOLDER = r'C:\Temp\teleport'
-RATING_SAS = ''
+RATING_SAS = '' # avoid using SAS tokens for rating clips, rather use public_storage, clips will be copied there.
 subjective_SAS = r''
 cq_storage_SAS = r''
+public_storage_SAS = r''
 
 # config relative locations in container: https://teleportvideo.blob.core.windows.net/subjective-runs/
+# DO NOT update these vaulue but the one in set_config_relative_urls function
 gold_relative_url = None
 tran_relative_url = None
 trap_relative_url = None
@@ -26,30 +28,27 @@ subjective_base_url = 'https://teleportvideo.blob.core.windows.net/subjective-ru
 subjective_client = ContainerClient.from_container_url(subjective_base_url, credential=subjective_SAS)
 cq_storage_base_url = 'https://cqstorageacct.blob.core.windows.net/teleport/'
 cq_storage_client = ContainerClient.from_container_url(cq_storage_base_url, credential=cq_storage_SAS)
+public_storage_base_url = 'https://mlvideopub.blob.core.windows.net/teleportvideo/'
+public_storage_client = ContainerClient.from_container_url(public_storage_base_url, credential=public_storage_SAS)
 
 overwrite = False
-# define three templates a, b and c as static to be used in the code
-Template 
-
-
-
 
 def set_config_relative_urls(template):
     global gold_relative_url, tran_relative_url, trap_relative_url, config_relative_url
-    if template == Template.TEMPLATE_B:
+    if template == Template.TEMPLATE_A:
+        # template A, links are copied from study 10_14_2024. beside the master_a.cfg other files are not updated
+        gold_relative_url = 'configs/master/03192025/tlp_gold_clips_a.csv'
+        tran_relative_url = 'configs/master/03192025/tlp_training_clips_a.csv'
+        trap_relative_url = 'configs/master/03192025/tlp_trapping_clips_a.csv'
+        config_relative_url = 'configs/master/03192025/master_a.cfg'
+    elif template == Template.TEMPLATE_B:
         # Template B
-        gold_relative_url = 'configs/master/09262024/tlp_gold_clips_b.csv'
-        tran_relative_url = 'configs/master/09262024/tlp_training_clips_b.csv'
-        trap_relative_url = 'configs/master/09262024/tlp_trapping_clips_b.csv'
-        config_relative_url = 'configs/master/09262024/master_b.cfg'
-    elif template == Template.TEMPLATE_A:
-        # template A
-        gold_relative_url = 'configs/master/12062023/tlp_gold_clips.csv'
-        tran_relative_url = 'configs/master/12062023/tlp_training_clips.csv'
-        trap_relative_url = 'configs/master/12062023/tlp_trapping_clips.csv'
-        config_relative_url = 'configs/master/12062023/master.cfg'
-    elif template == Template.TEMPLATE_C:
-        # Template C
+        gold_relative_url = 'configs/master/03192025/tlp_gold_clips_b.csv'
+        tran_relative_url = 'configs/master/03192025/tlp_training_clips_b.csv'
+        trap_relative_url = 'configs/master/03192025/tlp_trapping_clips_b.csv'
+        config_relative_url = 'configs/master/03192025/master_b.cfg'    
+    elif template == Template.TEMPLATE_PROBLEM_TOKEN:
+        # Template problem Token
         # TODO add them to the storage
         gold_relative_url = 'configs/master/09262024/tlp_gold_clips_b.csv'
         tran_relative_url = 'configs/master/09262024/tlp_training_clips_b.csv'
@@ -67,6 +66,7 @@ def create_local_config(folder, relative_url, version):
 
 
 def create_local_csv_SAS(folder, relative_url, version):
+    print('downloading: ' + relative_url)
     blob = subjective_client.get_blob_client(relative_url)
     csv_filename = relative_url.split('/')[-1]
     download_path = os.path.join(folder, csv_filename)
@@ -98,8 +98,10 @@ def create_evaluation_folder(folder, input_csv, version, output_csv):
         blob_name = 'evaluations/' + version + '/' + row['type'] + '/' + row['model'] + '/' + blob_name
         subjective_client.get_blob_client(blob_name).start_copy_from_url(row['clip_url'] + cq_storage_SAS,
                                                                          requires_sync=True)
-
-        eval_csv = pd.concat([eval_csv, pd.DataFrame({'pvs': [urljoin(subjective_base_url, blob_name) + RATING_SAS]})])
+        public_storage_client.get_blob_client(blob_name).start_copy_from_url(row['clip_url'] + cq_storage_SAS,
+                                                                           requires_sync=True)
+        #eval_csv = pd.concat([eval_csv, pd.DataFrame({'pvs': [urljoin(subjective_base_url, blob_name) + RATING_SAS]})])
+        eval_csv = pd.concat([eval_csv, pd.DataFrame({'pvs': [urljoin(public_storage_base_url, blob_name) + RATING_SAS]})])
 
     output_csv_file = os.path.join(folder, output_csv)
     eval_csv.to_csv(output_csv_file, index=False)
@@ -173,10 +175,10 @@ def merge_clips_into_side_by_side(merge_csv_file):
     rating_source.to_csv(merge_csv_file.replace('.csv', '_side_by_side.csv'), index=False)
 
 
-csv_file = r'C:\data\studies\teleport\template_b\rating_source_b.csv'
-template = Template.TEMPLATE_C
-eval_ver = '09_26_2024'
-csv_output = 'clips.csv'
+csv_file = r'C:\data\studies\teleport\template_a_testing\small\rating_source_small.csv'
+template = Template.TEMPLATE_A
+eval_ver = 'test_03_21_2025'
+csv_output = 'rating_clips.csv'
 set_config_relative_urls(template)
 create_evaluation(csv_file, eval_ver, csv_output)
 

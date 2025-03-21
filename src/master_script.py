@@ -7,16 +7,19 @@
 """
 
 import argparse
-import asyncio
-import configparser as CP
 import os
+import asyncio
+import base64
 import random
 import string
 
+
+import configparser as CP
 import pandas as pd
-from jinja2 import Template
 
 import create_input as ca
+
+from jinja2 import Template
 from azure_clip_storage import AzureClipStorage, TrappingSamplesInStore, GoldSamplesInStore
 import math
 
@@ -54,12 +57,16 @@ def create_analyzer_cfg(cfg, template_path, out_path, n_HITs):
     config['accepted_device'] = cfg['viewing_condition']['accepted_device']
     config['min_device_resolution'] = cfg['viewing_condition']['min_device_resolution']
     config['min_screen_refresh_rate'] = cfg['viewing_condition']['min_screen_refresh_rate']
+    # gold    
+    if 'gold_clips_src' in cfg['hit_app_html']:
+        config['gold_ans_format'] = cfg['hit_app_html']['gold_ans_format']
 
     with open(template_path, 'r') as file:
         content = file.read()
         file.seek(0)
     t = Template(content)
     cfg_file = t.render(cfg=config)
+       
 
     with open(out_path, 'w') as file:
         file.write(cfg_file)
@@ -216,10 +223,13 @@ async def create_hit_app_acr(master_cfg, template_path, out_path, training_path,
     config['debug'] = hit_app_html_cfg['debug'] if 'debug' in hit_app_html_cfg else 'false'
     config['use_trapping_question'] = hit_app_html_cfg['use_trapping_question']
     config['use_repeated_question'] = hit_app_html_cfg['use_repeated_question']
-    config['instruction_html'] = hit_app_html_cfg['instruction_html']
-    config['rating_questions'] = hit_app_html_cfg['rating_questions']
-    config['rating_answers'] = hit_app_html_cfg['rating_answers']
-    config['is_template_b'] = 'true' if hit_app_html_cfg['tamplate'].lower() in ['b','c'] else 'false'
+    #config['instruction_html'] = hit_app_html_cfg['instruction_html']
+    #config['rating_questions'] = hit_app_html_cfg['rating_questions']
+    #config['rating_answers'] = hit_app_html_cfg['rating_answers']
+    config['template'] = hit_app_html_cfg['template'].lower().strip()
+    # check for accepted values : a,b, or problem_token
+    if config['template'] not in ['a', 'b', 'problem_token']:
+        raise SystemExit("Error: 'template' should be one of the following values: a, b, or problem_token. Update the config file:", config['template'])
 
     config['cookie_name'] = hit_app_html_cfg['cookie_name'] if 'cookie_name' in hit_app_html_cfg else \
         f'acr_{get_rand_id()}'
@@ -445,7 +455,7 @@ async def create_hit_app_acrhr(master_cfg, template_path, out_path, training_pat
 
 
 # checked
-async def prepare_csv_for_create_input(cfg, test_method, clips, gold, trapping, general):
+async def prepare_csv_for_create_input(cfg, test_method, clips, gold, trapping, general, color_vision_res_path):
     """
     Merge different input files into one dataframe
     :param test_method
@@ -474,6 +484,12 @@ async def prepare_csv_for_create_input(cfg, test_method, clips, gold, trapping, 
         df_clips = pd.DataFrame({'pvs': rating_clips})
 
     df_general = pd.read_csv(general)
+    df_color_vision = pd.read_csv(color_vision_res_path)
+    # add prefix cv_ to color vision columns
+    df_color_vision.columns = ['cv_'+col for col in df_color_vision.columns]
+    # randomize 
+    df_color_vision = df_color_vision.sample(frac=1).reset_index(drop=True)
+    df_general = df_general.sample(frac=1).reset_index(drop=True) 
 
     if gold and os.path.exists(gold):
         df_gold = pd.read_csv(gold)
@@ -488,7 +504,7 @@ async def prepare_csv_for_create_input(cfg, test_method, clips, gold, trapping, 
         trapclipsstore = TrappingSamplesInStore(cfg['TrappingQuestions'], 'TrappingQuestions')
         df_trap = await trapclipsstore.get_dataframe()
         print('total trapping clips from store [{0}]'.format(len(await trapclipsstore.clip_names)))
-    result = pd.concat([df_clips, df_gold, df_trap, df_general], axis=1, sort=False)
+    result = pd.concat([df_clips, df_gold, df_trap, df_general, df_color_vision], axis=1, sort=False)
     return result
 
 
@@ -552,7 +568,15 @@ def get_path(test_method):
 async def main(cfg, test_method, args):
     # check assets
     general_path = os.path.join(os.path.dirname(__file__), 'assets_master_script/general.csv')
+    internal_general_path = os.path.join(os.path.dirname(__file__), 'assets_master_script/internal_general.csv')
+    if os.path.exists(internal_general_path):
+        general_path = internal_general_path
     assert os.path.exists(general_path), f"No csv file containing general infos in {general_path}"
+    color_vision_res_path = os.path.join(os.path.dirname(__file__), 'assets_master_script/color_vision_plates.csv')
+    internal_color_vision_res_path = os.path.join(os.path.dirname(__file__), 'assets_master_script/internal_color_vision_plates_20122024.csv')
+    if os.path.exists(internal_color_vision_res_path):
+        color_vision_res_path = internal_color_vision_res_path
+    assert os.path.exists(color_vision_res_path), f"No csv file containing color vision plates infos in {color_vision_res_path}"
     template_path, cfg_path = get_path(test_method)
 
     cfg_hit_app = cfg["hit_app_html"]
@@ -564,13 +588,13 @@ async def main(cfg, test_method, args):
         clip_packing_strategy = cfg["create_input"]["clip_packing_strategy"].strip().lower()
         if clip_packing_strategy == "balanced_block":
             # condition pattern is needed
-            if not (("condition_pattern" in cfg["create_input"]) & ("condition_keys" in cfg["create_input"])):
+            if not(("condition_pattern" in cfg["create_input"]) & ("condition_keys" in cfg["create_input"])):
                 raise SystemExit("Error: by 'balanced_block' strategy, 'condition_pattern' and 'condition_keys' should "
                                  "be specified in the configuration.")
             if (',' in cfg["create_input"]["condition_keys"]) & ("block_keys" not in cfg["create_input"]):
                 raise SystemExit("Error: In 'balanced_block' strategy, 'block_keys' should be specified in "
                                  "configuration when 'condition_keys' contains more than one key.")
-        elif not (clip_packing_strategy == "random"):
+        elif not(clip_packing_strategy == "random"):
             raise SystemExit("Error: Unexpected value for 'clip_packing_strategy' in the configuration file")
 
     # create output folder *******
@@ -578,21 +602,20 @@ async def main(cfg, test_method, args):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     # prepare format
-    df = await prepare_csv_for_create_input(cfg, test_method, args.clips, args.gold_clips, args.trapping_clips,
-                                            general_path)
+    df = await prepare_csv_for_create_input(cfg, test_method, args.clips, args.gold_clips, args.trapping_clips, general_path, color_vision_res_path)
 
     # create inputs
     print('Start validating inputs')
     ca.validate_inputs(df, test_method)
     print('... validation is finished.')
 
-    output_csv_file = os.path.join(output_dir, args.project + '_publish_batch.csv')
+    output_csv_file = os.path.join(output_dir, args.project+'_publish_batch.csv')
     n_HITs = ca.create_input_for_mturk(cfg['create_input'], df, test_method, output_csv_file)
 
     # check settings of quantity bonus
-    if not (int(cfg_hit_app["quantity_hits_more_than"]) in range(int(n_HITs / 2), int(n_HITs * 2 / 3) + 1)):
+    if not (int(cfg_hit_app["quantity_hits_more_than"]) in range(int(n_HITs/2),  int(n_HITs*2/3)+1)):
         print("\nWARNING: it seems that 'quantity_hits_more_than' not set properly. Consider to use a number in"
-              f" the range of [{int(n_HITs / 2)}, {int(n_HITs * 2 / 3)}].\n")
+                              f" the range of [{int(n_HITs/2)}, {int(n_HITs*2/3)}].\n")
 
     # Create general config for variables in the HTML template
     general_cfg = prepare_basic_cfg(df)
