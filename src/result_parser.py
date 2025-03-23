@@ -1175,7 +1175,7 @@ question_names = []
 problem_tokens_a = ['trust', 'realistic', 'creepy', 'formal', 'comfortableusing', 'comfortableinteracting', 'appropriate', 'like']
 problem_tokens_b = ['facialexpressions', 'lookslike','gesture_acc']
 # items with _pt_ can be present or ansent in the csv file as they are checkboxes
-problem_tokens_pt = ['realism', 'pt_avsync', 'pt_distortion', 'pt_absencemicrodetails', 'pt_inaccuratelighting', 'pt_unnaturaltextures', 'pt_noproblem', 'pt_other_text']
+problem_tokens_pt = ['realism', "pt_lifelike", "pt_facialexp", "pt_motion", "pt_texture", "pt_lighting", "pt_sync", "pt_eyes", "pt_noProblem", 'pt_other_text']
 
 question_name_suffix = ''
 create_per_worker = True

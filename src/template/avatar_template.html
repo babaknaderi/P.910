@@ -713,6 +713,8 @@ function set_onclick_listeners(){
 	document.getElementById("showNextQuestionInTrainingSection").onclick = function() { showNextQuestionInTrainingSection(); };
 	document.getElementById("prev-rating").onclick = function() { showPreviousQuestionInRatingSection(); };
 	document.getElementById("next-rating").onclick = function() { showNextQuestionInRatingSection(); };
+	document.getElementById("help_which_questions_remain").onclick = function() { help_which_questions_remain(); };
+
 }
 /*
 	Store the following information in hidden input field which will be added to answerc.csv by AMT
@@ -2025,28 +2027,32 @@ function getTelepScaleProblemToken(is_training){
 	
 	var postfix = ' </tbody> </table> </fieldset> </div> <div class="col-sm-4"></div> </div>';
 
-	var problem_toke_prefix ='<div class="row">	<div class="col-sm-4"></div>	<div class="col-sm-4">'+
+	var problem_toke_prefix ='<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+
 	'<p style="margin-top:10px;" >{0}.2. Specify the issues (or no problem):?</p>  '+
 	'<div class="row">'+
 	'<fieldset id="fieldset_t{0}.2" class="trainingFieldset" title=""><table  cellspacing="0" cellpadding="0"><tbody>';
 
-	var problem_toke_postfix = '</tbody></table></fieldset></div></div>';
+	var problem_toke_postfix = '</tbody></table></fieldset></div></div><div class="col-sm-3"></div> </div> ';
 	
 
 
-	questions ={"1": {"id": "avSync", "text": "Audio and video are not in sync"},
-	"2": {"id": "distortion", "text": "Distortion on image"},
-	"3": {"id": "absenceMicrodetails", "text": "Absence of microdetails and imperfections"},
-	"4": {"id": "inaccurateLighting", "text": "Inaccurate lighting and shadows"},
-	"5": {"id": "unnaturalTextures", "text": "Unnatural textures and materials"},
-	//"6": {"id": "unnaturalMovements", "text": "Unnatural movements and gestures"},
-	//"7": {"id": "unnaturalExpressions", "text": "Unnatural facial expressions and lip-syncing"},
+	questions ={"1": {"id": "lifelike", "text": "<b>Avatar Lifelikeness–</b> How lifelike, natural and believable the avatar appears."},
+	"2": {"id": "facialexp", "text": "<b>Facial Expressions & Emotions –</b> Accuracy of facial expressions and emotional conveyance."},
+	"3": {"id": "motion", "text": "<b>Motion & Fluidity –</b> Smoothness and responsiveness of body movements and animations."},
+	"4": {"id": "texture", "text": "<b>Texture & Detail Issues –</b> Clarity and quality of textures; blurriness, pixelation, or unrealistic details."},
+	"5": {"id": "lighting", "text": "<b>Lighting/Shading Issues –</b> Accuracy of lighting, shading, and reflections."},
+	"6": {"id": "sync", "text": "<b>Lip Sync & Mouth Movement –</b> Synchronization of lip movements with speech if available."},
+	"7": {"id": "eyes", "text": "<b>Eyes & Blinking –</b> Realism of blinking and gaze tracking."},
 	"8": {"id": "noProblem", "text": "No problem"},
 	};
+
+
+
+
 	questions = {...questions};
 	config['numberOfRatingQuestions'] = Object.keys(questions).length;
 
-	problem_template = '<div class= "problem_token"> <input type="checkbox" value="1" id="{0}" name="{0}" > <label for="{0}">{1}</label></div>';	
+	problem_template = '<div class= "problem_token form-check">  <label for="{0}" class="form-check-label"><input type="checkbox" value="1" id="{0}" name="{0}" class="form-check-input"> {1}</label></div>';	
 					
 				
 
@@ -3506,9 +3512,18 @@ function avoidAnsweringBeforeWatchingThrough(){
 		</div>
 
 		<div id="template_problem_token_instructions" hidden>
-			<p>Almost ready to start.</p> <p>Thank you for participating in this task! You will be watching videos about different representations in online work meetings and giving your opinion about how realistic the person is represented. After watching each video, you should rate how much you agree with the provided statement. Also what are the problems/issues that should be solve to have a realistic representation. If the issue you observe is not provided in list, please use the free text input and type it in.</p>
+			<p>Almost ready to start.</p> <p>Thank you for participating in this task! You will be watching videos about different representations in online work meetings and giving your opinion about how realistic the person is represented. After watching each video, you should rate how much you agree with the provided statement. Also what are the problems/issues that should be solve to have completely realistic representation. If the issue you observe is not provided in list, please use the free text input and type it in. Follwoing problems / issues are provided. Please read them carefully and familirise yourself with them.</p>
+			<ul>
+				<li> <b>Avatar Lifelikeness –</b> A general category encompassing how lifelike the avatar appears in terms of naturalness,  and believability.</li>
+				<li> <b>Facial Expressions & Emotions –</b> Refers to how well the avatar conveys emotions through facial expressions, including smiling, frowning, eyebrow movements, and overall expressiveness.</li>
+				<li> <b>Motion & Fluidity –</b> Evaluates the smoothness and natural movement of the avatar, including body motion, animations, and responsiveness to actions.</li>
+				<li> <b>Texture & Detail Issues –</b> Concerns related to the clarity and quality of textures, such as blurriness, pixelation, lack of fine details, or unrealistic skin and clothing textures.</li>
+				<li> <b>Lighting/Shading Issues –</b> Covers how lighting and shadows interact with the avatar, including incorrect shading, overly bright or dark areas, and unnatural reflections.</li>
+				<li> <b>Lip Sync & Mouth Movement –</b> Assesses the accuracy and realism of lip movements when speaking, including synchronization with speech and natural mouth motion.</li>
+				<li> <b>Eyes & Blinking –</b> Assesses the accuracy and realism of eye behavior including blinking, and gaze tracking.</li>
+			</ul>
 		</div>
-
+		
       </div>
     </div>
   </div>
@@ -3599,7 +3614,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 
 <section class="container" id="thanks">
 	<p>Thanks for your participation. Please perform more HITs from this group when they are available for you.</p>
-	<p>Note: The submit button works only if you answer to all questions. Make sure to answer to all 8 questions for each video. <a id="myLink" href="#" onclick="help_which_questions_remain();return false;">Click here to see which questions in the "Rating" section are not answered?</a></p>
+	<p>Note: The submit button works only if you answer to all questions. Make sure to answer to all 8 questions for each video. <a id="help_which_questions_remain" href="#" >Click here to see which questions in the "Rating" section are not answered?</a></p>
 </section>
 
 
