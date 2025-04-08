@@ -610,6 +610,8 @@ async def main(cfg, test_method, args):
     print('... validation is finished.')
 
     output_csv_file = os.path.join(output_dir, args.project+'_publish_batch.csv')
+    df.to_csv(output_csv_file, index=False)
+    print(f"  [{output_csv_file}] is created")
     n_HITs = ca.create_input_for_mturk(cfg['create_input'], df, test_method, output_csv_file)
 
     # check settings of quantity bonus

@@ -6,6 +6,7 @@
 @author: Babak Naderi
 """
 
+import base64
 import csv
 import statistics
 from builtins import int
@@ -355,7 +356,7 @@ def check_gold_question_tlepb(row):
                     correct_gq = 1
                     return correct_gq, details
     except Exception as e:
-        logger.info('Gold Question error: ', e.messag)        
+        logger.info('Gold Question error: ', e.message)        
         return None, None
     return correct_gq, details
 
@@ -1160,6 +1161,8 @@ method_to_mos = {
     'tlp_arealistic': 'MOS_Realistic',
     'tlp_blookslike': 'MOS_LooksLike',
     'tlp_bfacialexpressions': 'MOS_FacialExpressions',
+    'tlp_bgesture_acc': 'MOS_GestureAcc',
+    'tlp_bmotion': 'MOS_Motion',
     'tlp_ptrealism': 'MOS_Realism',
     'tlp_ptpt_avsync': 'SUM_AVSync',
     'tlp_ptpt_distortion': 'SUM_Distortion',
