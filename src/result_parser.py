@@ -541,6 +541,27 @@ def extend_row_with_pt(row):
                     row[f'answer.{q_name}_{pt}'] = 0
     return row
 
+def check_video_dropped_frame_percent(row):
+    """
+    Check the ratio of dropped frames to total frames
+    :param row:
+    :return: ratio of dropped frames to total frames
+    """
+    # get all field start by answer.video_total_frames and get average and median of them
+    # add try catch
+    try:
+        list_items = [item for item in row.keys() if item.startswith('answer.video_dropped_frame_percent') and float(row[item]) != -1]
+        if len(list_items) == 0:
+            return float('inf'), float('inf')
+        # get the average value of items in the list
+        avg_video_dropped_frame_percent = sum(float(row[item]) for item in list_items) / len(list_items)
+        median_video_dropped_frame_percent = statistics.median([float(row[item]) for item in list_items])
+        return avg_video_dropped_frame_percent, median_video_dropped_frame_percent
+    except  Exception as e:
+        #print(row)
+        return float('inf'), float('inf')
+    
+
 def data_cleaning(filename, method, wrong_vcodes):
    """
    Data screening process
@@ -605,6 +626,7 @@ def data_cleaning(filename, method, wrong_vcodes):
         d['variance_in_ratings'] = check_variance(row, method)
 
         d['percent_over_play_duration'] = check_play_duration(row)
+        d['video_dropped_frame_percent_avg'], d['video_dropped_frame_percent_med'] = check_video_dropped_frame_percent(row)
 
         if 'answer.video_loading_duration_ms' in row:
             d['video_loading_duration'] = row['answer.video_loading_duration_ms']
@@ -913,7 +935,9 @@ def save_rejected_ones(data, path, wrong_vcodes, not_accepted_reasons, num_rej_p
         logger.info(f'    overall {c_rejected} answers are rejected, from them {df.shape[0]} were in submitted status')
 
     not_accepted_reasons_list = list(collections.Counter(not_accepted_reasons).items())
-    not_accepted_reasons_list.append(('Wrong Verification Code', 0 if wrong_vcodes is None else len(wrong_vcodes.index)))
+    if wrong_vcodes is not None:
+        not_accepted_reasons_list.append(('Wrong Verification Code', len(wrong_vcodes.index)))
+
     if num_rej_perform != 0:
         not_accepted_reasons_list.append(('Performance', num_rej_perform))
 
@@ -1393,17 +1417,19 @@ def calc_payment_stat(df):
     :return:
     """
     if 'Reward' not in df.columns:
-        return None, None
-    
+        df['Reward'] = '$0.00' # from Prolific we doing get the rewards in the csv file
+        #return 0, 0
     if 'Answer.time_page_hidden_sec' in df.columns:
-        # rewrite df['Answer.time_page_hidden_sec'].where(df['Answer.time_page_hidden_sec'] < 3600, 0, inplace=True)
-        df['Answer.time_page_hidden_sec'] = df['Answer.time_page_hidden_sec'].where(df['Answer.time_page_hidden_sec'] < 3600, 0)
+
+        #df['Answer.time_page_hidden_sec'].where(df['Answer.time_page_hidden_sec'] < 3600, 0, inplace=True)
+        # set all values smaller than 3600 to 0
+        df['Answer.time_page_hidden_sec'] = np.where(df['Answer.time_page_hidden_sec'] < 3600, 0, df['Answer.time_page_hidden_sec'])
         df['time_diff'] = df["work_duration_sec"] - df['Answer.time_page_hidden_sec']
         median_time_in_sec = df["time_diff"].median()
     else:
         median_time_in_sec = df["work_duration_sec"].median()
     payment_text = df['Reward'].values[0]
-    paymnet = re.findall("\d+\.\d+", payment_text)
+    paymnet = re.findall(r"\d+\.\d+", payment_text)
 
     avg_pay = 3600*float(paymnet[0])/median_time_in_sec
     formatted_time = time.strftime("%M:%S", time.gmtime(median_time_in_sec))
@@ -1417,12 +1443,11 @@ def calc_stats(input_file):
     :param input_file:
     :return:
     """
+    print('Calculating payment statistics...::',  input_file)
     df = pd.read_csv(input_file, low_memory=False)
     df_full = df.copy()
     overall_time, overall_pay = calc_payment_stat(df)
-    if overall_pay is None:
-        # it was internal study
-        return
+
     # full study, all sections were shown
     df_full = df_full[~df_full['Answer.7_plate3'].isna()]
     full_time, full_pay = calc_payment_stat(df_full)
@@ -1430,7 +1455,10 @@ def calc_stats(input_file):
     # no qual
     df_no_qual = df[df['Answer.7_plate3'].isna()]
     df_no_qual_no_setup = df_no_qual[df_no_qual['Answer.t1_circles'].isna()]
-    only_rating = df_no_qual_no_setup[df_no_qual_no_setup[f'Answer.t1_{problem_tokens[0]}'].isna()].copy()
+    if 'Answer.t1' in df_no_qual_no_setup.columns:
+        only_rating = df_no_qual_no_setup[df_no_qual_no_setup['Answer.t1'].isna()].copy()
+    else:
+        only_rating = df_no_qual_no_setup.copy()
 
     if len(only_rating)>0:
         only_r_time, only_r_pay = calc_payment_stat(only_rating)
@@ -1555,6 +1583,109 @@ def combine_amt_hit_server(amt_ans_path, hitapp_ans_path):
     return merged_ans_path, not_in_hitapp
 
 
+def combine_prolific_hit_server(prolific_ans_path, hitapp_ans_path):
+    """
+    Combine the answers from the Prolific and the HIT_APP Server
+    :param amt_ans_path:
+    :param hitapp_ans_path:
+    :return:
+    """
+    prolific_ans = pd.read_csv(prolific_ans_path, low_memory=False)
+    hitapp_ans = pd.read_csv(hitapp_ans_path, low_memory=False)
+
+    # keep just for reference
+    columns_to_remove = prolific_ans.columns.difference(['WorkerId', 'Answer.v_code', 'HITId',
+                                             'HITTypeId', 'AssignmentId', 'WorkTimeInSeconds',
+                                             'Reward', 'Answer.hitapp_assignmentId', 'Input.url'])
+    
+    columns_to_remove = prolific_ans.columns.difference(['Submission id','Participant id', 'Completion code', 'Country of birth',
+                                             'Country of residence', 'Ethnicity simplified', 'Language',
+                                             'Nationality', 'Primary language', 'Sex', 'Time taken', 'Total approvals', 'URL'])
+    
+    prolific_ans.drop(columns=columns_to_remove, inplace=True)
+    
+    hitapp_ans["hitapp_workerid"] = hitapp_ans["WorkerId"]
+    hitapp_ans["hitapp_assignmentid"] = hitapp_ans["AssignmentId"]
+    hitapp_ans["hitapp_hitid"] = hitapp_ans["HITId"]
+    hitapp_ans["hitapp_hittypeid"] = hitapp_ans["HITTypeId"]
+    hitapp_ans["HITTypeId"] = hitapp_ans["Answer.studyId"]
+    hitapp_ans.rename(columns={"work_duration_sec": "hitapp_work_duration_sec"},  inplace=True)
+
+    # cut rows with no device_type value from hitapp and save them separately. 
+    # These rows are the ones that are not submitted by the workers
+    hitapp_ans_incomplete = hitapp_ans[hitapp_ans['Answer.device_type'].isna()]
+    hitapp_ans = hitapp_ans[~hitapp_ans['Answer.device_type'].isna()]
+    hitapp_ans_incomplete.to_csv(os.path.splitext(hitapp_ans_path)[0] + '_incomplete_submissions.csv', index=False)
+    unique_assignments = hitapp_ans_incomplete['hitapp_assignmentid'].unique()
+    # print the size
+    logger.info(f"** {len(unique_assignments)} submissions are not completed by the workers.")
+    
+    # prolific rename columsn
+    prolific_ans.rename(columns={"Participant id": "prolific_participant_id",
+                               "Completion code": "Answer.v_code",
+                               'Time taken': "WorkTimeInSeconds", 
+                               'Submission id':'prolific_submission_id', 
+                               'Total approvals':'prolific_total_approvals',
+                               'URL':'prolific_url'},  inplace=True)
+    
+    
+    # drop rows with no URL
+    prolific_ans.dropna(subset=['prolific_url'], inplace=True)
+   
+    # check for duplicates in prolific_submission_id and hitapp_assignmentid and keep first
+    count_duplicate_prolific = prolific_ans['prolific_submission_id'].duplicated(keep='first')
+    count_duplicate_hitapp = hitapp_ans['hitapp_assignmentid'].duplicated(keep='first')
+    if count_duplicate_prolific.any():
+        logger.info(f"** {len(prolific_ans[count_duplicate_prolific])} duplicates in the Prolific data.")
+        # save the duplicates in a separate file
+        prolific_ans[count_duplicate_prolific].to_csv(prolific_ans_path.replace('.csv' , '_duplicate_submission_id.csv'), index=False)
+        prolific_ans.drop_duplicates(subset=['prolific_submission_id'], keep='first', inplace=True)
+    if count_duplicate_hitapp.any():
+        logger.info(f"** {len(hitapp_ans[count_duplicate_hitapp])} duplicates in the HITAPP data.")
+        # save the duplicates in a separate file
+        hitapp_ans[count_duplicate_hitapp].to_csv(hitapp_ans_path.replace('.csv' , '_duplicate_assignment_id.csv'), index=False)
+        hitapp_ans.drop_duplicates(subset=['hitapp_assignmentid'], keep='first', inplace=True)   
+
+    # check if there are submission without conuter part key in hitapp servers
+    #not_in_hitapp = prolific_ans[~prolific_ans['Answer.v_code'].isin(hitapp_ans.v_code)]
+    not_in_hitapp = prolific_ans[~prolific_ans['prolific_submission_id'].isin(hitapp_ans.hitapp_assignmentid)].copy()
+    # print the lenght
+    logger.info(f"** {len(not_in_hitapp)} submissions are not found in the HITAPP server.")
+    # Todo check if it can be adapted
+    #recover_submission_withoiut_matching_vcode(hitapp_ans, amt_ans, not_in_hitapp)
+
+    # print number of rows for both dataframes
+    logger.info(f"** {len(prolific_ans)} rows in the Prolific data.")
+    logger.info(f"** {len(hitapp_ans)} rows in the HITAPP server data.")
+    #merged = pd.merge(hitapp_ans, prolific_ans, left_on='v_code', right_on='Answer.v_code')
+    merged = pd.merge(hitapp_ans, prolific_ans, left_on='hitapp_assignmentid', right_on='prolific_submission_id')
+
+    columns_to_remove = ['Answer.v_code']
+    if "work_duration_sec" not in merged.columns:
+        merged.rename(columns={"WorkTimeInSeconds": "work_duration_sec"}, inplace=True)
+    else:
+        columns_to_remove.append("WorkTimeInSeconds")
+    merged.drop(columns=columns_to_remove, inplace=True)
+
+    merged_ans_path = os.path.splitext(hitapp_ans_path)[0] + '_merged.csv'
+    merged.to_csv(merged_ans_path, index=False)
+
+    # filter hitapp_ans and only keep the ones that are not in merged using the id column
+    hitapp_ans_not_found_in_amt = hitapp_ans[~hitapp_ans['id'].isin(merged.id)]
+    hitapp_ans_not_found_in_amt.to_csv(os.path.splitext(hitapp_ans_path)[0] + '_not_found_in_prolific.csv', index=False)
+    # print the size
+    logger.info(f"** {len(hitapp_ans_not_found_in_amt)} submissions in HITAPP data are not found in the Prolific data.")
+
+    # add WorkerId and AssignmentId to the not_in_hitapp dataframe
+    not_in_hitapp['WorkerId'] = not_in_hitapp['prolific_participant_id']
+    not_in_hitapp['AssignmentId'] = not_in_hitapp['prolific_submission_id']
+
+    # last part of prolific_export_68114a150c74b353a03bfd9e.csv
+    hitgroup_id =  os.path.basename(prolific_ans_path).split('_')[-1].split('.')[0]
+    not_in_hitapp['HITId'] = 'created_'+hitgroup_id+not_in_hitapp['AssignmentId']    
+    
+    return merged_ans_path, not_in_hitapp
+
 def add_dmos_acrhr(agg_per_file_path, cfg):
     """
     Calculate the DMOS values for ACR-HR test
@@ -1580,7 +1711,7 @@ def add_dmos_acrhr(agg_per_file_path, cfg):
     per_file.to_csv(agg_per_file_path, index=False)
 
 
-def analyze_results(config, test_method, answer_path, amt_ans_path,  list_of_req, quality_bonus):
+def analyze_results(config, test_method, answer_path, amt_ans_path,prolific_ans_path,  list_of_req, quality_bonus):
     """
     main method for calculating the results
     :param config:
@@ -1596,7 +1727,11 @@ def analyze_results(config, test_method, answer_path, amt_ans_path,  list_of_req
     wrong_v_code = None
     if amt_ans_path:
         answer_path, wrong_v_code = combine_amt_hit_server(amt_ans_path, answer_path)
+    if prolific_ans_path:
+        answer_path, wrong_v_code = combine_prolific_hit_server(prolific_ans_path, answer_path)
+
     full_data, accepted_sessions = data_cleaning(answer_path, test_method, wrong_v_code)
+      
 
     n_workers, n_workers_used = number_of_unique_workers(full_data, accepted_sessions)
     logger.info(f"{n_workers} workers participated in this batch, answers of {n_workers_used} are used.")
@@ -1679,6 +1814,9 @@ if __name__ == '__main__':
                         help="Answers csv file from HIT App Server, path relative to current directory")
     parser.add_argument("--amt_answers",
                         help="Answers csv file from AMT, path relative to current directory")
+    
+    parser.add_argument("--prolific_answers",
+                        help="Answers csv file from Prolific (demographic data), path relative to current directory")
 
     parser.add_argument('--quantity_bonus', help="specify status of answers which should be counted when calculating "
                                                 " the amount of quantity bonus. All answers will be used to check "
@@ -1710,6 +1848,17 @@ if __name__ == '__main__':
     else:
         amt_ans_path = args.amt_answers
 
+    if args.prolific_answers is None:
+        
+        
+        prolific_ans_path = None
+    else:
+        prolific_ans_path = args.prolific_answers
+
+    if prolific_ans_path is None and amt_ans_path is None:
+        warnings.warn("Note: the WorkerId, HITIds, ect. are internal "
+                      "HIT APP server ids. Therefore bonus reports cannot be used." )
+
     assert os.path.exists(answer_path), f"No input file found in [{answer_path}]"
     list_of_possible_status = ['all', 'submitted']
 
@@ -1740,4 +1889,4 @@ if __name__ == '__main__':
     logger.info(f"Start analyzing the results of {test_method} test")
 
     # start
-    analyze_results(config, test_method,  answer_path, amt_ans_path,  list_of_req, args.quality_bonus)
+    analyze_results(config, test_method,  answer_path, amt_ans_path, prolific_ans_path,   list_of_req, args.quality_bonus)
