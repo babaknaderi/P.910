@@ -6,7 +6,6 @@
 @author: Babak Naderi
 """
 
-import base64
 import csv
 import statistics
 from builtins import int
@@ -26,6 +25,7 @@ import configparser as CP
 import collections
 import warnings
 import logging
+import base64
 
 max_found_per_file = -1
 
@@ -107,40 +107,31 @@ def check_if_session_accepted(data):
 
     if data['correct_matrix'] is not None and data['correct_matrix'] < \
             int(config['acceptance_criteria']['correct_matrix_bigger_equal']):
-        accept = False
-        msg += "Your HIT was rejected because you rated one or more control clip incorrectly. Control clips are ones that we know that answer for and should be very easy to rate (they are clearly very good or very poor). We include control clips in the HIT to ensure raters are paying attention during the entire HIT and their environment hasn't changed"
+        accept = False        
         failures.append('brightness_test')
 
     if data['correct_tps'] < int(config['acceptance_criteria']['correct_tps_bigger_equal']):
-        accept = False
-        msg += "Your HIT was rejected because you rated one or more control clip incorrectly. Control clips are ones that we know that answer for and should be very easy to rate (they are clearly very good or very poor). We include control clips in the HIT to ensure raters are paying attention during the entire HIT and their environment hasn't changed"
+        accept = False        
         failures.append('trapping_question')
 
     if 'gold_standard_bigger_equal' in config['acceptance_criteria'] and \
             data['correct_gold_question'] < int(config['acceptance_criteria']['gold_standard_bigger_equal']):
-        accept = False
-        msg += "Your HIT was rejected because you rated one or more control clip incorrectly. Control clips are ones that we know that answer for and should be very easy to rate (they are clearly very good or very poor). We include control clips in the HIT to ensure raters are paying attention during the entire HIT and their environment hasn't changed"
+        accept = False        
         failures.append('gold_question')
-    
+
     # complete_answered should be 1
     if data['complete_answered'] != 1:
         accept = False
         msg += "Answering to all questions is required; "
         failures.append('incomplete_answer')
 
-    """
-    if data['all_videos_played'] != int(config['acceptance_criteria']['all_video_played_equal']):
-        accept = False
-        msg += "All videos are not watched;"
-        failures.append('all_videos_played')
-    """
+    if not accept:
+        msg = "Your HIT was rejected because you rated one or more control clip incorrectly. Control clips are ones that we know that answer for and should be very easy to rate (they are clearly very good or very poor). We include control clips in the HIT to ensure raters are paying attention during the entire HIT and their environment hasn't changed"
+        
     if not accept:
         data['Reject'] = msg
     else:
         data['Reject'] = ""
-
-    # pd.DataFrame(data).to_csv(r".\Teleport_a_12_11_2023\data.csv")
-    # pd.DataFrame({'failures': failures}).to_csv(r".\Teleport_a_12_11_2023\failures.csv")
     return accept, failures
 
 
@@ -294,7 +285,7 @@ def check_variance(row, method):
         try:
             if method == 'ccr':
                 order = 1 if row[f'answer.{q_name}{question_name_suffix}_order'] == 'pr' else -1
-                r.append(int(row[f'answer.{q_name}{question_name_suffix}']) * order)
+                r.append(int(float(row[f'answer.{q_name}{question_name_suffix}'])) * order)
             else:
                 # only use problem tokens tha have been reqired
                 problem_tokens_consider = [pt for pt in problem_tokens if 'pt_' not in pt]
@@ -471,6 +462,11 @@ def check_ishihara_plates(row):
 
         given_ans_p3 = str(int(float(row['answer.7_plate3'])))
         given_ans_p4 = str(int(float(row['answer.7_plate4'])))
+        # if the lenght is 1 add 0 in front of it
+        if len(given_ans_p3) == 1:
+            given_ans_p3 = '0' + given_ans_p3
+        if len(given_ans_p4) == 1:
+            given_ans_p4 = '0' + given_ans_p4
 
         correct_ans_coded_3 = plt3_base_name[4:8]
         correct_ans_coded_4 = plt4_base_name[4:8]
@@ -495,16 +491,16 @@ def check_play_duration(row):
     :param row:
     :return: ration of play-back to clip
     """
+    # add try catch
     try:
         total_duration = sum(float(row[f'answer.video_duration_{q}']) for q in question_names)
         total_play_duration = sum(float(row[f'answer.video_play_duration_{q}']) for q in question_names)
         if total_duration == 0:
             return float('inf')
-    except ValueError as exp:
-        logger.info("Caught exception while retrieving play duration")
-        return float('inf')
-    return total_play_duration/total_duration
-
+        return total_play_duration/total_duration
+    except  Exception as e: 
+        #print(row)
+        return float('inf')    
 
 def check_all_answered(row, method):
     """
@@ -581,11 +577,10 @@ def data_cleaning(filename, method, wrong_vcodes):
     not_using_further_reasons = []
     not_accepted_reasons = []
     gold_question_details = []
-
-   #"""
+    #"""
     failed_workers = []
-   #in_df.sort_values(by=['answer.visual_acuity_result'], ascending=False, inplace=True)
-   #"""
+    #in_df.sort_values(by=['answer.visual_acuity_result'], ascending=False, inplace=True)
+    #"""
     for row in reader:
         setup_was_hidden = 'answer.cmp1' not in row or  row['answer.cmp1'] is None or len(row['answer.cmp1'].strip()) == 0
         d = dict()
@@ -635,7 +630,7 @@ def data_cleaning(filename, method, wrong_vcodes):
         d['complete_answered'] = 1 if method != 'tlp_pt' else check_all_answered(row, method)
             
         should_be_accepted, accept_failures = check_if_session_accepted(d)
-
+        
         if should_be_accepted:
             d['accept'] = 1
             d['Approve'] = 'x'
@@ -698,14 +693,31 @@ def data_cleaning(filename, method, wrong_vcodes):
     #num_rej_perform = 0
 
     #worker_list = add_wrong_vcodes(worker_list, wrong_vcodes)
+    
+    # cases with more than 5 wrong vcodes
+    wrong_v_code_freq = check_wrong_vcode_should_block(wrong_vcodes)
+
+    ## add advance datat cleaning here given input argument
+    
+    if args.adc:
+        try:
+            script_module = __import__("IC3AI_adc")
+            script_instance = script_module.get_instance()
+            worker_list, use_sessions = script_instance.run({'worker_list': worker_list, 
+                                 'use_sessions': use_sessions, 
+                                 'test_method':method,                                 
+                                 }, config)            
+        except ImportError:
+            print(f"{args.adc} is not available. Continuing without interruption.")
+        except AttributeError:
+            print(f"{args.adc} does not implement the required interface. Continuing without interruption.") 
+    else:
+        logger.info('No advance data cleaning is applied')
     accept_and_use_sessions = [d for d in worker_list if d['accept_and_use'] == 1]
     not_using_further_reasons = []
     for d in worker_list:
         if d['accept'] == 1 and d['accept_and_use'] == 0:
             not_using_further_reasons.extend(d['failures'])
-    # cases with more than 5 wrong vcodes
-    wrong_v_code_freq = check_wrong_vcode_should_block(wrong_vcodes)
-
     write_dict_as_csv(worker_list, report_file)
     save_approved_ones(worker_list, approved_file)
     save_rejected_ones(worker_list, rejected_file, wrong_vcodes, not_accepted_reasons, num_rej_perform)
@@ -749,14 +761,14 @@ def evaluate_rater_performance(data, use_sessions, reject_on_failure=False):
     # rater_min_accepted_hits_current_test
 
     grouped = df.groupby(['worker_id', 'accept_and_use']).size().unstack(fill_value=0).reset_index()
-    
+
     grouped = grouped.rename(columns={0: 'not_used_count', 1: 'used_count'})
     # if any of the columns does not exist add it filled by 0
     if 'not_used_count' not in grouped.columns:
         grouped['not_used_count'] = 0
     if 'used_count' not in grouped.columns:
         grouped['used_count'] = 0
-        
+   
     grouped['acceptance_rate'] = (grouped['used_count'] * 100)/(grouped['used_count'] + grouped['not_used_count'])
     grouped.to_csv('debug_workers_performance.csv')
 
@@ -848,6 +860,7 @@ def save_approve_rejected_ones_for_gui(data, path, wrong_vcodes):
     df = df[df.status == 'Submitted']
     small_df = df[['worker_id','assignment', 'HITId', 'Approve', 'Reject']].copy()
     small_df.rename(columns={'assignment': 'assignmentId', 'worker_id':'WorkerId'}, inplace=True)
+
     if wrong_vcodes is not None:
         wrong_vcodes_assignments = wrong_vcodes[['WorkerId','AssignmentId', 'HITId']].copy()
         wrong_vcodes_assignments["Approve"] = ""
@@ -855,10 +868,10 @@ def save_approve_rejected_ones_for_gui(data, path, wrong_vcodes):
         wrong_vcodes_assignments.rename(columns={'AssignmentId': 'assignmentId'}, inplace=True)        
         small_df = pd.concat([small_df, wrong_vcodes_assignments], ignore_index=True)
 
-        # Count number of duplicate in assignmentId
+    # Count number of duplicate in assignmentId
     small_df['n_duplicate'] = small_df.groupby('assignmentId')['assignmentId'].transform('size')
     small_df['n_duplicate'] = small_df['n_duplicate'].apply(lambda x: x - 1)
-           
+            
     small_df.to_csv(path, index=False)
 
 
@@ -1258,7 +1271,7 @@ def transform(test_method, sessions, agrregate_on_condition, is_worker_specific)
                 tmp = {'HITId': session['hitid'],
                     'workerid': session['workerid'],
                         'file':file_name,
-                       'short_file_name': file_name.rsplit('/', 1)[-1],
+                        'short_file_name': file_name.rsplit('/', 1)[-1],
                         'vote': vote}
 
                 tmp.update(cond)
@@ -1285,11 +1298,10 @@ def transform(test_method, sessions, agrregate_on_condition, is_worker_specific)
                 votes = outliers_iqr(votes)
             v_len_after = len(votes)
             if v_len != v_len_after:
-                #print(f'{v_len - v_len_after} removed ({key})')
+                #logger.info(f'{v_len - v_len_after} removed ({key})')
                 outlier_removed_count += v_len - v_len_after
                 # also only keep the rows from data_per_worker_df when the file is "key" then vote should be in votes.
                 data_per_worker_df = data_per_worker_df[(data_per_worker_df['file'] != key) | (data_per_worker_df['vote'].isin(votes))]
-
 
         # extra step:: add votes to the per-condition dict
         tmp_n = conv_filename_to_condition(key)
@@ -1364,9 +1376,10 @@ def transform(test_method, sessions, agrregate_on_condition, is_worker_specific)
                     votes = outliers_iqr(votes)                
                 v_len_after = len(votes)
                 if v_len != v_len_after:
-                    outlier_removed_count += v_len-v_len_after                                                            
-                    # remove everyvotes in removed_votes from data_per_worker_df where conditio_name=key
-                    data_per_worker_df = data_per_worker_df[(data_per_worker_df['condition_name'] != key) | (data_per_worker_df['vote'].isin(votes))]   
+                    outlier_removed_count += v_len-v_len_after
+                    # remove everyvotes from data_per_worker_df where conditio_name=key and the vote is not in votes
+                    data_per_worker_df = data_per_worker_df[(data_per_worker_df['condition_name'] != key) | (data_per_worker_df['vote'].isin(votes))]                   
+
             tmp = {**tmp, **condition_detail[key]}
             tmp['n'] = len(votes)
             if tmp['n'] > 0:
@@ -1416,6 +1429,9 @@ def calc_payment_stat(df):
     :param df:
     :return:
     """
+    # tmp
+    
+    # retun 0 if Reward not if column
     if 'Reward' not in df.columns:
         df['Reward'] = '$0.00' # from Prolific we doing get the rewards in the csv file
         #return 0, 0
@@ -1534,7 +1550,7 @@ def combine_amt_hit_server(amt_ans_path, hitapp_ans_path):
     unique_assignments = hitapp_ans_incomplete['hitapp_assignmentid'].unique()
     # print the size
     logger.info(f"** {len(unique_assignments)} submissions are not completed by the workers.")
-
+    
     # remove stript vcodes entered by workers
     amt_ans['Answer.v_code'] = amt_ans['Answer.v_code'].str.strip()
     # number of rows in amt
@@ -1686,6 +1702,121 @@ def combine_prolific_hit_server(prolific_ans_path, hitapp_ans_path):
     
     return merged_ans_path, not_in_hitapp
 
+def combine_prolific_hit_server_original(prolific_ans_path, hitapp_ans_path):
+    """
+    Combine the answers from the Prolific and the HIT_APP Server
+    :param amt_ans_path:
+    :param hitapp_ans_path:
+    :return:
+    """
+    prolific_ans = pd.read_csv(prolific_ans_path, low_memory=False)
+    hitapp_ans = pd.read_csv(hitapp_ans_path, low_memory=False)
+
+    # keep just for reference
+    columns_to_remove = prolific_ans.columns.difference(['WorkerId', 'Answer.v_code', 'HITId',
+                                             'HITTypeId', 'AssignmentId', 'WorkTimeInSeconds',
+                                             'Reward', 'Answer.hitapp_assignmentId', 'Input.url'])
+    
+    columns_to_remove = prolific_ans.columns.difference(['Submission id','Participant id', 'Completion code', 'Country of birth',
+                                             'Country of residence', 'Ethnicity simplified', 'Language',
+                                             'Nationality', 'Primary language', 'Sex', 'Time taken', 'Total approvals', 'URL'])
+    
+    prolific_ans.drop(columns=columns_to_remove, inplace=True)
+    
+    hitapp_ans["hitapp_workerid"] = hitapp_ans["WorkerId"]
+    hitapp_ans["hitapp_assignmentid"] = hitapp_ans["AssignmentId"]
+    hitapp_ans["hitapp_hitid"] = hitapp_ans["HITId"]
+    hitapp_ans["hitapp_hittypeid"] = hitapp_ans["HITTypeId"]
+    hitapp_ans["HITTypeId"] = hitapp_ans["Answer.studyId"]
+    hitapp_ans.rename(columns={"work_duration_sec": "hitapp_work_duration_sec"},  inplace=True)
+
+    # cut rows with no device_type value from hitapp and save them separately. 
+    # These rows are the ones that are not submitted by the workers
+    hitapp_ans_incomplete = hitapp_ans[hitapp_ans['Answer.device_type'].isna()]
+    hitapp_ans = hitapp_ans[~hitapp_ans['Answer.device_type'].isna()]
+    hitapp_ans_incomplete.to_csv(os.path.splitext(hitapp_ans_path)[0] + '_incomplete_submissions.csv', index=False)
+    unique_assignments = hitapp_ans_incomplete['hitapp_assignmentid'].unique()
+    # print the size
+    logger.info(f"** {len(unique_assignments)} submissions are not completed by the workers.")
+    
+    # prolific rename columsn
+    prolific_ans.rename(columns={"Participant id": "prolific_participant_id",
+                               "Completion code": "Answer.v_code",
+                               'Time taken': "WorkTimeInSeconds", 
+                               'Submission id':'prolific_submission_id', 
+                               'Total approvals':'prolific_total_approvals',
+                               'URL':'prolific_url'},  inplace=True)
+    
+    
+    # drop rows with no URL
+    prolific_ans.dropna(subset=['prolific_url'], inplace=True)
+    # remove stript vcodes entered by workers
+    prolific_ans['Answer.v_code'] = prolific_ans['Answer.v_code'].str.strip()
+    # number of rows in amt
+    submissiones = len(prolific_ans)
+ 
+    # select the rows that have NOCODE or the Answer.v_code column is nan
+    no_v_code = prolific_ans[prolific_ans['Answer.v_code'].str.contains('NOCODE', na=False)]    
+    if len(no_v_code) > 0:
+        logger.info(f"** {len(no_v_code)} submissions from Prolific do not have a verification code.")
+        no_v_code.to_csv(prolific_ans_path.replace('.csv' , '_no_v_code_prolific.csv'), index=False)
+        # remove the rows with no v_code
+        prolific_ans.dropna(subset=['Answer.v_code'], inplace=True)
+        # also drop the rows with NOCODE
+        prolific_ans = prolific_ans[~prolific_ans['Answer.v_code'].str.contains('NOCODE', na=False)]
+    # find rows with duplicate v_code
+    prolific_ans['is_duplicate'] = prolific_ans.duplicated(subset=['Answer.v_code'], keep=False)
+    duplicate_vc = prolific_ans[prolific_ans['is_duplicate'] == True]
+    # save the duplicate vcodes in a separate file
+    duplicate_vc.to_csv(prolific_ans_path.replace('.csv' , '_duplicate_vc.csv'), index=False)
+    prolific_ans.drop_duplicates(subset=['Answer.v_code'], keep=False, inplace=True)
+    # number of rows in amt after removing duplicates
+    submissiones_after = len(prolific_ans)
+    logger.info(f"** {submissiones - submissiones_after} duplicate/no vcodes are removed from the Prolific data.")
+
+
+    # check if there are submission without conuter part key in hitapp servers
+    #not_in_hitapp = prolific_ans[~prolific_ans['Answer.v_code'].isin(hitapp_ans.v_code)]
+    not_in_hitapp = prolific_ans[~prolific_ans['prolific_submission_id'].isin(hitapp_ans.hitapp_assignmentid)]
+    # print the lenght
+    logger.info(f"** {len(not_in_hitapp)} submissions are not found in the HITAPP server.")
+    # Todo check if it can be adapted
+    #recover_submission_withoiut_matching_vcode(hitapp_ans, amt_ans, not_in_hitapp)
+
+    # print number of rows for both dataframes
+    logger.info(f"** {len(prolific_ans)} rows in the Prolific data.")
+    logger.info(f"** {len(hitapp_ans)} rows in the HITAPP server data.")
+    #merged = pd.merge(hitapp_ans, prolific_ans, left_on='v_code', right_on='Answer.v_code')
+    merged = pd.merge(hitapp_ans, prolific_ans, left_on='hitapp_assignmentid', right_on='prolific_submission_id')
+
+    columns_to_remove = ['Answer.v_code']
+    if "work_duration_sec" not in merged.columns:
+        merged.rename(columns={"WorkTimeInSeconds": "work_duration_sec"}, inplace=True)
+    else:
+        columns_to_remove.append("WorkTimeInSeconds")
+    merged.drop(columns=columns_to_remove, inplace=True)
+
+    merged_ans_path = os.path.splitext(hitapp_ans_path)[0] + '_merged.csv'
+    merged.to_csv(merged_ans_path, index=False)
+
+    # filter hitapp_ans and only keep the ones that are not in merged using the id column
+    hitapp_ans_not_found_in_amt = hitapp_ans[~hitapp_ans['id'].isin(merged.id)]
+    hitapp_ans_not_found_in_amt.to_csv(os.path.splitext(hitapp_ans_path)[0] + '_not_found_in_prolific.csv', index=False)
+    # print the size
+    logger.info(f"** {len(hitapp_ans_not_found_in_amt)} submissions in HITAPP data are not found in the Prolific data.")
+
+    #todo: check if the assignment ids are also equal
+    not_in_hitapp = pd.concat([not_in_hitapp, duplicate_vc, no_v_code], ignore_index=True)
+    # add WorkerId and AssignmentId to the not_in_hitapp dataframe
+    not_in_hitapp['WorkerId'] = not_in_hitapp['prolific_participant_id']
+    not_in_hitapp['AssignmentId'] = not_in_hitapp['prolific_submission_id']
+
+    # last part of prolific_export_68114a150c74b353a03bfd9e.csv
+    hitgroup_id =  os.path.basename(prolific_ans_path).split('_')[-1].split('.')[0]
+    not_in_hitapp['HITId'] = 'created_'+hitgroup_id+not_in_hitapp['AssignmentId']
+    return merged_ans_path, not_in_hitapp
+
+
 def add_dmos_acrhr(agg_per_file_path, cfg):
     """
     Calculate the DMOS values for ACR-HR test
@@ -1745,6 +1876,7 @@ def analyze_results(config, test_method, answer_path, amt_ans_path,prolific_ans_
             logger.info("Transforming data (the ones with 'accepted_and_use' ==1 --> group per clip")
             use_condition_level = config.has_option('general', 'condition_pattern')
 
+
             votes_per_file, vote_per_condition, data_per_worker_df = transform(test_method, accepted_sessions,
                                                            config.has_option('general', 'condition_pattern'), False)
 
@@ -1787,7 +1919,7 @@ def analyze_results(config, test_method, answer_path, amt_ans_path,prolific_ans_
                         quantity_bonus_df = calc_quantity_bonuses(full_data, ['all'], None)
                     
                     calc_quality_bonuses(quantity_bonus_df, accepted_sessions, votes_to_use, config, quality_bonus_path,
-                                        n_workers, test_method, use_condition_level)                
+                                        n_workers, test_method, use_condition_level)
                 inter_rate_reliability, avg_irr = calc_inter_rater_reliability( accepted_sessions, votes_to_use, test_method,
                                                                                 use_condition_level)
                 irr_path = os.path.splitext(answer_path)[0] + '_irr_report.csv'
@@ -1804,6 +1936,8 @@ def analyze_results(config, test_method, answer_path, amt_ans_path,prolific_ans_
 
 
 if __name__ == '__main__':
+    
+
     parser = argparse.ArgumentParser(description='Utility script to evaluate answers to the pcrowd batch')
     # Configuration: read it from mturk.cfg
     parser.add_argument("--cfg", required=True,
@@ -1827,6 +1961,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--quality_bonus', help="Quality bonus will be calculated. Just use it with your final download"
                                                 " of answers and when the project is completed", action="store_true")
+    parser.add_argument('--adc' , help="name of Advance Data Cleaning script. If set, the answers will be filtered by that as well",  default=None)
+
     args = parser.parse_args()
     methods = ['dcr', 'acr', 'acr-hr', 'ccr', 'tlp_a', 'tlp_b', 'tlp_pt']
     test_method = args.method.lower()
@@ -1877,7 +2013,6 @@ if __name__ == '__main__':
 
     np.seterr(divide='ignore', invalid='ignore')
     question_names = [f"q{i}" for i in range(1, int(config['general']['number_of_questions_in_rating']) + 1)]
-    
     # setup the logging system
     logger = logging.getLogger("my_logger")
     logger.setLevel(logging.INFO)
@@ -1887,6 +2022,5 @@ if __name__ == '__main__':
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
     logger.info(f"Start analyzing the results of {test_method} test")
-
     # start
     analyze_results(config, test_method,  answer_path, amt_ans_path, prolific_ans_path,   list_of_req, args.quality_bonus)

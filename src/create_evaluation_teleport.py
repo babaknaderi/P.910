@@ -2,8 +2,10 @@ import os
 from urllib.parse import urljoin
 
 import pandas as pd
-from azure.storage.blob import ContainerClient
+from azure.storage.blob import ContainerClient, ContentSettings
 from enum import Enum
+import tempfile
+import uuid
 
 class Template(Enum):
     TEMPLATE_A = "1"
@@ -84,7 +86,7 @@ def create_local_csv_SAS(folder, relative_url, version):
         open(download_path, 'rb'), overwrite=overwrite)
 
 
-def create_evaluation_folder(folder, input_csv, version, output_csv):
+def create_evaluation_folder(folder, input_csv, version, output_csv, strip_audio=False):
     input_csv_path = os.path.join(folder, input_csv)
     subjective_client.get_blob_client(
         'evaluations/' + version + '/mturk/configs/' + input_csv).upload_blob(
@@ -96,11 +98,63 @@ def create_evaluation_folder(folder, input_csv, version, output_csv):
         blob_name = row['clip_url'].split('/')[-1]
         print(f'processing {blob_name}:')
         blob_name = 'evaluations/' + version + '/' + row['type'] + '/' + row['model'] + '/' + blob_name
-        subjective_client.get_blob_client(blob_name).start_copy_from_url(row['clip_url'] + cq_storage_SAS,
-                                                                         requires_sync=True)
-        public_storage_client.get_blob_client(blob_name).start_copy_from_url(row['clip_url'] + cq_storage_SAS,
-                                                                           requires_sync=True)
-        #eval_csv = pd.concat([eval_csv, pd.DataFrame({'pvs': [urljoin(subjective_base_url, blob_name) + RATING_SAS]})])
+        
+        # Set content type to video/mp4 when copying
+        content_settings = ContentSettings(content_type='video/mp4')
+        
+        if strip_audio:
+            # Download the video, strip audio, then upload
+            temp_dir = os.path.join(TMP_FOLDER, str(uuid.uuid4()))
+            os.makedirs(temp_dir, exist_ok=True)
+            
+            # Download original video
+            original_path = os.path.join(temp_dir, os.path.basename(blob_name))
+            source_blob_url = row['clip_url'] + cq_storage_SAS
+            
+            # Get the blob client for the source blob
+            source_container_name = row['clip_url'].split('/')[3]
+            source_blob_name = '/'.join(row['clip_url'].split('/')[4:])
+            
+            # Download the blob to local file
+            with open(original_path, 'wb') as file:
+                blob_client = cq_storage_client.get_blob_client(source_blob_name)
+                download_data = blob_client.download_blob()
+                file.write(download_data.readall())
+            
+            # Strip audio
+            no_audio_path = strip_audio_from_video(original_path)
+            
+            # Upload processed video
+            with open(no_audio_path, 'rb') as file:
+                subjective_client.get_blob_client(blob_name).upload_blob(
+                    file, 
+                    overwrite=overwrite,
+                    content_settings=content_settings
+                )
+                public_storage_client.get_blob_client(blob_name).upload_blob(
+                    open(no_audio_path, 'rb'), 
+                    overwrite=overwrite,
+                    content_settings=content_settings
+                )
+            
+            # Clean up temporary files
+            os.remove(original_path)
+            os.remove(no_audio_path)
+            os.rmdir(temp_dir)
+        else:
+            # Original implementation - copy directly
+            subjective_client.get_blob_client(blob_name).start_copy_from_url(
+                row['clip_url'] + cq_storage_SAS,
+                requires_sync=True
+            )
+            subjective_client.get_blob_client(blob_name).set_http_headers(content_settings=content_settings)
+            
+            public_storage_client.get_blob_client(blob_name).start_copy_from_url(
+                row['clip_url'] + cq_storage_SAS,
+                requires_sync=True
+            )
+            public_storage_client.get_blob_client(blob_name).set_http_headers(content_settings=content_settings)
+        
         eval_csv = pd.concat([eval_csv, pd.DataFrame({'pvs': [urljoin(public_storage_base_url, blob_name) + RATING_SAS]})])
 
     output_csv_file = os.path.join(folder, output_csv)
@@ -110,7 +164,7 @@ def create_evaluation_folder(folder, input_csv, version, output_csv):
         open(output_csv_file, 'rb'), overwrite=overwrite)
 
 
-def create_evaluation(rating_source, version, output_csv):
+def create_evaluation(rating_source, version, output_csv, strip_audio=False):
     folder = os.path.dirname(rating_source)
     rating_file = os.path.basename(rating_source)
 
@@ -119,10 +173,10 @@ def create_evaluation(rating_source, version, output_csv):
     create_local_csv_SAS(folder, trap_relative_url, version)
     create_local_config(folder, config_relative_url, version)
 
-    create_evaluation_folder(folder, rating_file, version, output_csv)
+    create_evaluation_folder(folder, rating_file, version, output_csv, strip_audio)
 
 
-def merge_clips_into_side_by_side(merge_csv_file):
+def merge_clips_into_side_by_side(merge_csv_file, strip_audio=False):
     data = pd.read_csv(merge_csv_file)
     rating_source = pd.DataFrame(columns=['model', 'type', 'clip_url'])
     # create temp folder
@@ -150,17 +204,33 @@ def merge_clips_into_side_by_side(merge_csv_file):
             # add suffix 'merged' to avatar file
             merged = avatar_path.replace('.mp4', '_merged.mp4')
 
-            command_to_run = 'ffmpeg -y -i {0} -i {1} -filter_complex [0:v][1:v]hstack=inputs=2[0_v]; -map "[0_v]" -map 0:a -c:a copy  {2}'.format(
-                avatar_path, real_path, merged)
+            # Command to merge videos side-by-side
+            if strip_audio:
+                command_to_run = (
+                    'ffmpeg -y -i {0} -i {1} -filter_complex '
+                    '"[0:v]scale=-1:ih[vid1];[1:v]scale=-1:ih[vid2];[vid1][vid2]hstack=inputs=2[v]" '
+                    '-map "[v]" -an {2}'
+                ).format(avatar_path, real_path, merged)
+            else:
+                command_to_run = (
+                    'ffmpeg -y -i {0} -i {1} -filter_complex '
+                    '"[0:v]scale=-1:ih[vid1];[1:v]scale=-1:ih[vid2];[vid1][vid2]hstack=inputs=2[v]" '
+                    '-map "[v]" -map 0:a -c:a copy {2}'
+                ).format(avatar_path, real_path, merged)
 
             print('Running: ' + command_to_run)
             os.system(command_to_run)
 
             print('Processed: ' + merged)
-            # upload merged file
+            # upload merged file with proper content type
             blob_name = merged.split('\\')[-1]
             blob_name = row['cq_path'] + '/' + blob_name
-            cq_storage_client.get_blob_client(blob_name).upload_blob(open(merged, 'rb'), overwrite=overwrite)
+            content_settings = ContentSettings(content_type='video/mp4')
+            cq_storage_client.get_blob_client(blob_name).upload_blob(
+                open(merged, 'rb'), 
+                overwrite=overwrite,
+                content_settings=content_settings
+            )
             print('Uploaded: ' + blob_name)
             # add to rating_source
             rating_source = pd.concat(
@@ -175,12 +245,64 @@ def merge_clips_into_side_by_side(merge_csv_file):
     rating_source.to_csv(merge_csv_file.replace('.csv', '_side_by_side.csv'), index=False)
 
 
-csv_file = r'C:\data\studies\teleport\template_a_testing\small\rating_source_small.csv'
+# Helper function to check and update content type of existing blobs
+def ensure_video_content_type(container_client, prefix=''):
+    """
+    Check all blobs in a container with a given prefix and set content-type to video/mp4 for mp4 files
+    """
+    content_settings = ContentSettings(content_type='video/mp4')
+    count = 0
+    
+    for blob in container_client.list_blobs(name_starts_with=prefix):
+        if blob.name.lower().endswith('.mp4'):
+            if blob.content_settings.content_type != 'video/mp4':
+                print(f"Updating content type for {blob.name}")
+                container_client.get_blob_client(blob.name).set_http_headers(content_settings=content_settings)
+                count += 1
+    
+    print(f"Updated content type for {count} blobs")
+
+# Uncomment to run content type check/update on existing blobs
+# ensure_video_content_type(subjective_client, 'evaluations/')
+# ensure_video_content_type(public_storage_client, 'evaluations/')
+
+# Helper function to strip audio from a video file
+def strip_audio_from_video(input_path, output_path=None):
+    """
+    Strip audio from a video file using FFmpeg
+    
+    Args:
+        input_path: Path to input video file
+        output_path: Path to output video file. If None, a temporary file is created.
+        
+    Returns:
+        Path to the output file
+    """
+    if output_path is None:
+        # Create temporary file in the same directory as input
+        output_dir = os.path.dirname(input_path)
+        temp_filename = f"{uuid.uuid4().hex}.mp4"
+        output_path = os.path.join(output_dir, temp_filename)
+    
+    # # Use FFmpeg to strip audio
+    # command = f'ffmpeg -i "{input_path}" -c:v copy -an "{output_path}" -y'
+    # Use FFmpeg to strip audio and set CRF to 17 for high quality
+    # Instead of -c:v copy which just copies the video stream without re-encoding
+    # we now use -c:v libx264 -crf 17 to ensure high quality output
+    command = f'ffmpeg -i "{input_path}" -c:v libx264 -crf 17 -an "{output_path}" -y'
+    print(f"Stripping audio: {command}")
+    os.system(command)
+    
+    return output_path
+
+csv_file = r'C:\Users\vigopal\source\repos\P.910\src\06_01_2025\rating_source_noaudio.csv'
 template = Template.TEMPLATE_A
-eval_ver = 'test_03_21_2025'
-csv_output = 'rating_clips.csv'
+eval_ver = '06_01_2025_noaudio'
+csv_output = 'rating_clips_noaudio_a.csv'
+# Set to True to strip audio from all videos
+strip_audio = True
 set_config_relative_urls(template)
-create_evaluation(csv_file, eval_ver, csv_output)
+create_evaluation(csv_file, eval_ver, csv_output, strip_audio)
 
 ## merge clips side by side for subjective evaluation using a csv file
 ## model: model name
@@ -190,4 +312,4 @@ create_evaluation(csv_file, eval_ver, csv_output)
 ## clip_real: real clip url in cq storage
 ## example of csv file: https://teleportvideo.blob.core.windows.net/subjective-runs/configs/master/12062023/merge_clips.csv
 
-# merge_clips_into_side_by_side(r'C:\github\P.910\merg\merge_clips.csv')
+# merge_clips_into_side_by_side(r'C:\github\P.910\merg\merge_clips.csv', strip_audio=False)

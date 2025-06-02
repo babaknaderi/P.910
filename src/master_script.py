@@ -20,7 +20,7 @@ import pandas as pd
 import create_input as ca
 
 from jinja2 import Template
-from azure_clip_storage import AzureClipStorage, TrappingSamplesInStore, GoldSamplesInStore
+from utils.azure_clip_storage import AzureClipStorage, TrappingSamplesInStore, GoldSamplesInStore
 import math
 
 
