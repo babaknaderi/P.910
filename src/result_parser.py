@@ -238,6 +238,7 @@ def check_tps(row, method):
     tp_url = row[config['trapping']['url_found_in']]
     tp_correct_ans = [int(float(row[config['trapping']['ans_found_in']]))]
     tp_q_name_dict = {'lessthan5':1, 'cantreadenglish':1, 'hundred':1, 'speling':1, 'lesshundred':5, 'olderthan5':5, 'canreadenglish':5}
+    tp_issues = []
     try:
         suffix = ''
         for idx, q_name in enumerate(question_names):
@@ -251,22 +252,29 @@ def check_tps(row, method):
                     if given_ans not in tp_correct_ans:
                         incorrect_tps += 1
             # elif f'answer.{q_name}_tp' in row.keys() or f'answer.{q_name}_repeatedid' in row.keys():
+            
             else:
                 tp_name = row[f'answer.{q_name}_tpid']
+                
                 if abs(int(float(row[f'answer.{q_name}_tp'])) - tp_q_name_dict[row[f'answer.{q_name}_tpid']]) > 1:
                     # print(f"row number[{idx}] and url [{tp_url}] failed TP for {q_name} with answer ", row[f'answer.{q_name}_tp'])
                     incorrect_tps += 1
-                    all_tp_anss = [int(float(row[f'answer.{q_name_debug}_tp'])) for q_name_debug in question_names]
+                    tp_issues.append(row[f'answer.{q_name}_tpid'])
+                #    all_tp_ans = [int(float(row[f'answer.{q_name_debug}_tp'])) for q_name_debug in question_names]
+                
                 repeatqname = row[f'answer.{q_name}_repeatedid']
                 if abs(int(float(row[f'answer.{q_name}_{repeatqname}'])) - int(float(row[f'answer.{q_name}_repeatingitem']))) > 1:
                     incorrect_tps += 1
+                    tp_issues.append(repeatqname)
+                
+                
         if incorrect_tps <= 0:
             correct_tps = 1
-        return correct_tps
+        return correct_tps, ",".join(tp_issues)
     except Exception as e:
         logger.info(f'caught exception while checking for tps {e}')
         pass
-    return correct_tps
+    return correct_tps, ",".join(tp_issues)
 
 
 def check_variance(row, method):
@@ -609,7 +617,7 @@ def data_cleaning(filename, method, wrong_vcodes):
             # step2. check math
             d['correct_matrix'] = check_matrix(row)
         # step 4. check tps
-        d['correct_tps'] = check_tps(row, method)
+        d['correct_tps'], d['correct_tps_issues'] = check_tps(row, method)
         # step5. check gold_standard,
         d['correct_gold_question'], details  = check_gold_question(row, method)
         details['worker_id'] = d['worker_id']
@@ -1646,7 +1654,7 @@ def combine_prolific_hit_server(prolific_ans_path, hitapp_ans_path):
     
     
     # drop rows with no URL
-    prolific_ans.dropna(subset=['prolific_url'], inplace=True)
+    prolific_ans.dropna(subset=['prolific_url', 'Answer.v_code'], how='all', inplace=True)
    
     # check for duplicates in prolific_submission_id and hitapp_assignmentid and keep first
     count_duplicate_prolific = prolific_ans['prolific_submission_id'].duplicated(keep='first')
@@ -1665,11 +1673,13 @@ def combine_prolific_hit_server(prolific_ans_path, hitapp_ans_path):
     # check if there are submission without conuter part key in hitapp servers
     #not_in_hitapp = prolific_ans[~prolific_ans['Answer.v_code'].isin(hitapp_ans.v_code)]
     not_in_hitapp = prolific_ans[~prolific_ans['prolific_submission_id'].isin(hitapp_ans.hitapp_assignmentid)].copy()
+    # save 
+    
     # print the lenght
     logger.info(f"** {len(not_in_hitapp)} submissions are not found in the HITAPP server.")
     # Todo check if it can be adapted
     #recover_submission_withoiut_matching_vcode(hitapp_ans, amt_ans, not_in_hitapp)
-
+    
     # print number of rows for both dataframes
     logger.info(f"** {len(prolific_ans)} rows in the Prolific data.")
     logger.info(f"** {len(hitapp_ans)} rows in the HITAPP server data.")

@@ -1986,7 +1986,7 @@ function getTelepScale(is_training, is_problem_token){
 
     for (i=0; i<tmp_list.length; i++){
         tmp = questions[tmp_list[i]];
-		if (i<3){
+		if (i<3 && tmp['id'] != 'tp'){
 			first_three_q.push(tmp);
 		}
 		tmp = getRatingSection(p, tmp['id'], tmp['text'], answers);
@@ -1995,6 +1995,7 @@ function getTelepScale(is_training, is_problem_token){
 		if (i==insert_after && config['useRepeatedQuestion'] ==1){
 			// randomly select one item from first_three_q
 			let r_item = first_three_q[Math.floor(Math.random() * first_three_q.length)];			
+
 			repeated_item = getRatingSection(p,'repeatingitem', r_item['text'], answers);
 			postfix = postfix + '<input type="hidden" name="'+p+'{0}_repeatedid" value="'+r_item['id']+'">';
 			// _i need to be corrected
@@ -3107,19 +3108,19 @@ function avoidAnsweringBeforeWatchingThrough(){
 						checkboxes, text fields, etc. correctly
 					</li>
 				</ul>
+				<div class ="not_show_in_pl">
+					<p><b>Payment:</b></p>
+					<p>The result of this experiment is <b>very important for us and other scientist</b> working in this area. We have methods that analyse the consistency of your answers. We will use these methods to rank the submitted assignments according to quality.</p>
+					<p>For this experiment, we will pay a base reward of <b>${{cfg.hit_base_payment}}/HIT</b> for every accepted HIT. We have made available a set of <b class="max_allowed_hits">0 </b> different HITs. You will receive a bonus of:</p>
 
-				<p><b>Payment:</b></p>
-				<p>The result of this experiment is <b>very important for us and other scientist</b> working in this area. We have methods that analyse the consistency of your answers. We will use these methods to rank the submitted assignments according to quality.</p>
-				<p>For this experiment, we will pay a base reward of <b>${{cfg.hit_base_payment}}/HIT</b> for every accepted HIT. We have made available a set of <b class="max_allowed_hits">0 </b> different HITs. You will receive a bonus of:</p>
+					<ul>
+					<li>${{cfg.quantity_bonus}}/HIT (for a total of <b>${{cfg.sum_quantity}}/HIT</b>) if you submit <b>more than {{cfg.quantity_hits_more_than}} HITs</b> or</li>
+					<li>${{cfg.quality_bonus}}/HIT (for a total of <b>${{cfg.sum_quality }}/HIT</b>) if you submit <b>more than {{cfg.quantity_hits_more_than}} HITs</b> <u>and</u> be in the <b>top {{cfg.quality_top_percentage}}% quality group</b>.</li>
+					</ul>
 
-				<ul>
-				  <li>${{cfg.quantity_bonus}}/HIT (for a total of <b>${{cfg.sum_quantity}}/HIT</b>) if you submit <b>more than {{cfg.quantity_hits_more_than}} HITs</b> or</li>
-				  <li>${{cfg.quality_bonus}}/HIT (for a total of <b>${{cfg.sum_quality }}/HIT</b>) if you submit <b>more than {{cfg.quantity_hits_more_than}} HITs</b> <u>and</u> be in the <b>top {{cfg.quality_top_percentage}}% quality group</b>.</li>
-				</ul>
-
-				<p>Bonuses will be assigned within 7 days.</p>
-				<b>Please perform up to <b class="max_allowed_hits"> 0 </b> HITs from this group. If you do more than that, the <u>rest will be rejected.</u></b>
-
+					<p>Bonuses will be assigned within 7 days.</p>
+					<b>Please perform up to <b class="max_allowed_hits"> 0 </b> HITs from this group. If you do more than that, the <u>rest will be rejected.</u></b>
+				</div>
 				<h3>Attention: </h3>
 				  <p>This hit includes one or more Control clips (gold clips). Control clips are ones that we know that answer for and should be very easy to rate (they are clearly very good or very poor). We include control clips in the HIT to ensure raters are paying attention and their environment hasn't changed.
 					  A wrong answer to control clip(s) will result in rejection of the HIT.</p>
