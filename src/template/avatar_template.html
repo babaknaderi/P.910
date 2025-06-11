@@ -813,7 +813,7 @@ function loadTextPlaceHolders(){
 		$('.rating_question_text').html(place_holder_question);
 	}
 	if (config['template']=="problem_token"){
-		place_holder_task = "Imagine you want to participate in <b>an online meeting related to your work</b>. You or your counterpart will be represented by an avatar. For each question, please watch the provided video. On <b>left</b> there is an avatar representation whereas <b>on right there is the real video</b>. Provide your opinion on <b>how realistic the avatar represents the person in the video</b>, and <b>what issues should be addressed to make it more realistic</b>.";
+		place_holder_task = "Imagine you want to participate in <b>an online meeting related to your work</b>. You or your counterpart will be represented by an avatar as shown in the following videos. For each question, please watch the provided video. You only watch the avatar video. Provide your opinion on <b>how realistic the avatar is</b>, and <b>what issues should be addressed to make it more realistic</b>.";
 		$('.task_description').html(place_holder_task);
 		
 	}
@@ -2018,12 +2018,12 @@ function getTelepScaleProblemToken(is_training){
 	
     var overhead = '<div class="tab-pane fade {2}" id="'+p+'{0}-panel" role="tabpanel" aria-labelledby="'+p+'{0}-tab"><p></p>'+
 	'<div class="row">	<div class="col-sm-2"></div>	<div class="col-sm-8">'+
-	'<p style="margin-top:10px;" class="rating_question_text">{0}.1. Imagine you want to participate in <b>an online meeting related to your work</b>. In that meeting, <b>you or your colleague</b> (right) will be represented by an avatar (left) as shown in the video below. </br>Watch the video and rate how much you agree with following statement: The <b>avatar</b> (left) is realistic .</p> <div class="row"> <p align="center"> '+
+	'<p style="margin-top:10px;" class="rating_question_text">{0}.1. Imagine you want to participate in <b>an online meeting related to your work</b>. In that meeting, <b>you or your colleague</b> will be represented by an avatar as shown in the video below. </br>Watch the video and rate how much you agree with following statement: The <b>avatar</b> is realistic .</p> <div class="row"> <p align="center"> '+
 	'<span class="velmnt" id="'+p+'{0}" data-src-clip="{1}" data-onfinished="playedVideoTraining" data-scale="{{cfg.video_player}}"></span> </p> '+	
 	' </div> </div> <div class="col-sm-2"></div> </div> ' +
 	//'<div class="row">	<div class="col-sm-3"></div>	<div class="col-sm-6">'+'<fieldset id="fieldset_Q{0}" class="trainingFieldset" title="">'+
 	'<div class="row">	<div class="col-sm-4"></div>	<div class="col-sm-4">'+
-	'<fieldset id="fieldset_t{0}.1" class="trainingFieldset" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The <b>avatar</b> (left) is realistic</th><th class="c" >Score</th></tr></thead><tbody>'+
+	'<fieldset id="fieldset_t{0}.1" class="trainingFieldset" title=""><table class="table md scale" cellspacing="0" cellpadding="0"><thead><tr><th >The <b>avatar</b> is realistic</th><th class="c" >Score</th></tr></thead><tbody>'+
 	getACRScale("agree", is_training);
 	
 	var postfix = ' </tbody> </table> </fieldset> </div> <div class="col-sm-4"></div> </div>';
@@ -3513,7 +3513,7 @@ function avoidAnsweringBeforeWatchingThrough(){
 		</div>
 
 		<div id="template_problem_token_instructions" hidden>
-			<p>Almost ready to start.</p> <p>Thank you for participating in this task! You will be watching videos about different representations in online work meetings and giving your opinion about how realistic the person is represented. After watching each video, you should rate how much you agree with the provided statement. Also what are the problems/issues that should be solve to have completely realistic representation. If the issue you observe is not provided in list, please use the free text input and type it in. Follwoing problems / issues are provided. Please read them carefully and familirise yourself with them.</p>
+			<p>Almost ready to start.</p> <p>Thanks for joining this task! You will be watching videos about different representations in online work meetings and giving your opinion. Remember, we are thinking about <b>online meetings for work</b> and you should rate the entire video clip. After watching each video, you should rate how much you agree with the provided statement. Also what are the problems/issues that should be solve to have completely realistic representation. If the issue you observe is not provided in list, please use the free text input and type it in. Follwoing problems / issues are provided. Please read them carefully and familirise yourself with them.</p>
 			<ul>
 				<li> <b>Avatar Lifelikeness –</b> A general category encompassing how lifelike the avatar appears in terms of naturalness,  and believability.</li>
 				<li> <b>Facial Expressions & Emotions –</b> Refers to how well the avatar conveys emotions through facial expressions, including smiling, frowning, eyebrow movements, and overall expressiveness.</li>

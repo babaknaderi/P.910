@@ -206,8 +206,7 @@ def check_tps_tlpb(row, method):
         for q_name in question_names:
             if tp_url in row[f'answer.{q_name}_url']:
                 # found a trapping clips question
-                for tp in problem_tokens_consider:
-                    print(tp)
+                for tp in problem_tokens_consider:                    
                     given_ans.append(int(float(row[f'answer.{q_name}_{tp}'])))                                
                         
         # create an array with size of len(question_names) and fill it with the correct answer
@@ -215,13 +214,13 @@ def check_tps_tlpb(row, method):
         # check if two arrays (tp_correct_ans_all and given_ans)are equal
         if tp_correct_ans_all == given_ans:        
             correct_tps = 1
-            return correct_tps
+            return correct_tps, "tba"
         # else:
             # print('url{0}, given_ans:{1}, tp_ans:{2}, num_qnames{3}'.format(tp_url, given_ans, tp_correct_ans, len(question_names)))
     except:
         logger.info(given_ans, tp_correct_ans)
         pass
-    return correct_tps
+    return correct_tps, "tba"
 
 
 def check_tps(row, method):
@@ -329,11 +328,11 @@ def check_gold_question_tlepb(row):
         # formated as "(lookslike,facialexpression)", _ means whatever is correct  
         correct_ans_text =  row[config['gold_question']['ans_found_in']]
         correct_ans_text= correct_ans_text.replace('(', '').replace(')', '').replace(' ', '')
-        correct_anses =  correct_ans_text.split(',')
+        correct_anses =  correct_ans_text.split(',')        
         item_orders = format.replace('(', '').replace(')', '').replace(' ', '').split(',')
         correct_ans = {}
         for i, item in enumerate(item_orders):
-            correct_ans[item] = int(correct_anses[i]) if correct_anses[i] != '_' else None        
+            correct_ans[item] = int(float(correct_anses[i])) if correct_anses[i] != '_' else None        
 
         gq_var = int(float(config['gold_question']['variance']))
         details ={'gq_url': gq_url, 'gq_correct_ans':correct_ans_text}
@@ -512,24 +511,35 @@ def check_play_duration(row):
 
 def check_all_answered(row, method):
     """
-    only relevant for Teleport_tp where participants should select one out of the reasons. Theoritically this should be checked in front-end before submission, here is to do a double check.
+    only relevant for Teleport_tp where participants should select one out of the reasons. 
+    Theoritically this should be checked in front-end before submission, here is to do a double check.
 
     """
     if method != 'tlp_pt':
         return 1
     
     problem_token_consider =  [pt for pt in problem_tokens if 'pt_' in pt]    
+    print(problem_token_consider)
     # for each question at least one of the problem tokens should be included in answers (with a value lenght >0)
     for q_name in question_names:
+        print(f'checking {q_name} for pt')
+        # continue if it is tp or gold question
+        if 'gold_question' in config and row[config['gold_question']['url_found_in']] in row[f'answer.{q_name}_url']:
+            continue
+        if 'trapping' in config and row[config['trapping']['url_found_in']] in row[f'answer.{q_name}_url']:
+            continue
         found = False
         for pt in problem_token_consider:
-            if  f'answer.{q_name}_{pt}' in row and len(row[f'answer.{q_name}_{pt}'].strip()) > 0:
+            if  f'answer.{q_name}_{pt}' in row and len(str(row[f'answer.{q_name}_{pt}']).strip()) > 0:
                 found = True
                 break
         if not found:
+            print(f'... not found any pt for {q_name}')
+            # set the answer for 
+            #row[f'answer.{q_name}_{pt}']
             return 0
-
     return 1
+
 def extend_row_with_pt(row):
     """
     extend the row with the problem tokens when they are not available in the row
@@ -538,7 +548,7 @@ def extend_row_with_pt(row):
     problem_token_consider =  [pt for pt in problem_tokens if 'pt_' in pt]
     for q_name in question_names:
         for pt in problem_token_consider:
-            if  f'answer.{q_name}_{pt}' not in row or len(row[f'answer.{q_name}_{pt}'].strip()) == 0:                
+            if  f'answer.{q_name}_{pt}' not in row or len(str(row[f'answer.{q_name}_{pt}']).strip()) == 0:                
                 if 'other' in pt:
                     row[f'answer.{q_name}_{pt}'] = None	
                 else:
@@ -634,8 +644,12 @@ def data_cleaning(filename, method, wrong_vcodes):
         if 'answer.video_loading_duration_ms' in row:
             d['video_loading_duration'] = row['answer.video_loading_duration_ms']
 
+        if method == 'tlp_pt':
+            row = extend_row_with_pt(row)
+
         # only for tlep_pt
         d['complete_answered'] = 1 if method != 'tlp_pt' else check_all_answered(row, method)
+        #d['complete_answered'] = 1 
             
         should_be_accepted, accept_failures = check_if_session_accepted(d)
         
@@ -651,8 +665,7 @@ def data_cleaning(filename, method, wrong_vcodes):
         d['failures'] = failures
 
         not_using_further_reasons.extend(failures)
-        if method == 'tlp_pt':
-            row = extend_row_with_pt(row)
+        
         if should_be_used:
             d['accept_and_use'] = 1
             use_sessions.append(row)
@@ -1209,11 +1222,13 @@ method_to_mos = {
     'tlp_bgesture_acc': 'MOS_GestureAcc',
     'tlp_bmotion': 'MOS_Motion',
     'tlp_ptrealism': 'MOS_Realism',
-    'tlp_ptpt_avsync': 'SUM_AVSync',
-    'tlp_ptpt_distortion': 'SUM_Distortion',
-    'tlp_ptpt_absencemicrodetails': 'SUM_AbsenceMicroDetails',
-    'tlp_ptpt_inaccuratelighting': 'SUM_InaccurateLighting',
-    'tlp_ptpt_unnaturaltextures': 'SUM_UnnaturalTextures',
+    'tlp_ptpt_lifelike': 'SUM_Lifelike',
+    'tlp_ptpt_facialexp': 'SUM_FacialExp_Emotions',
+    'tlp_ptpt_motion': 'SUM_Motion_Fluidity',
+    'tlp_ptpt_texture': 'SUM_Texture_Details',
+    'tlp_ptpt_lighting': 'SUM_Lighting_Shading',
+    'tlp_ptpt_sync': 'SUM_LipSync',
+    'tlp_ptpt_eyes': 'SUM_Eyes_Blinking',        
     'tlp_ptpt_noproblem': 'SUM_NoProblem',
     'tlp_ptpt_other_text': 'FREE_TEXT_Other',
 }
@@ -1223,7 +1238,7 @@ question_names = []
 problem_tokens_a = ['trust', 'realistic', 'creepy', 'formal', 'comfortableusing', 'comfortableinteracting', 'appropriate', 'like']
 problem_tokens_b = ['facialexpressions', 'lookslike','gesture_acc']
 # items with _pt_ can be present or ansent in the csv file as they are checkboxes
-problem_tokens_pt = ['realism', "pt_lifelike", "pt_facialexp", "pt_motion", "pt_texture", "pt_lighting", "pt_sync", "pt_eyes", "pt_noProblem", 'pt_other_text']
+problem_tokens_pt = ['realism', "pt_lifelike", "pt_facialexp", "pt_motion", "pt_texture", "pt_lighting", "pt_sync", "pt_eyes", "pt_noproblem", 'pt_other_text']
 
 question_name_suffix = ''
 create_per_worker = True
