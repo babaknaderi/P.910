@@ -51,11 +51,10 @@ def set_config_relative_urls(template):
         config_relative_url = 'configs/master/03192025/master_b.cfg'    
     elif template == Template.TEMPLATE_PROBLEM_TOKEN:
         # Template problem Token
-        # TODO add them to the storage
-        gold_relative_url = 'configs/master/09262024/tlp_gold_clips_b.csv'
-        tran_relative_url = 'configs/master/09262024/tlp_training_clips_b.csv'
-        trap_relative_url = 'configs/master/09262024/tlp_trapping_clips_b.csv'
-        config_relative_url = 'configs/master/09262024/master_c.cfg'
+        gold_relative_url = 'configs/master/03192025/tlp_gold_clips_pt.csv'
+        tran_relative_url = 'configs/master/03192025/tlp_training_clips_pt.csv'
+        trap_relative_url = 'configs/master/03192025/tlp_trapping_clips_pt.csv'
+        config_relative_url = 'configs/master/03192025/master_pt.cfg'
 
 def create_local_config(folder, relative_url, version):
     blob = subjective_client.get_blob_client(relative_url)
