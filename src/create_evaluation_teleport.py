@@ -16,6 +16,7 @@ TMP_FOLDER = r'C:\Temp\teleport'
 RATING_SAS = '' # avoid using SAS tokens for rating clips, rather use public_storage, clips will be copied there.
 subjective_SAS = r''
 cq_storage_SAS = r''
+teleport_westus3_SAS = r''  # SAS for teleport westus3 storage, used for copying clips to public storage
 public_storage_SAS = r''
 
 # config relative locations in container: https://teleportvideo.blob.core.windows.net/subjective-runs/
@@ -30,6 +31,8 @@ subjective_base_url = 'https://teleportvideo.blob.core.windows.net/subjective-ru
 subjective_client = ContainerClient.from_container_url(subjective_base_url, credential=subjective_SAS)
 cq_storage_base_url = 'https://cqstorageacct.blob.core.windows.net/teleport/'
 cq_storage_client = ContainerClient.from_container_url(cq_storage_base_url, credential=cq_storage_SAS)
+teleport_westus3_base_url = 'https://teleportstorageacctwus3.blob.core.windows.net/experiments/'
+teleport_westus3_client = ContainerClient.from_container_url(teleport_westus3_base_url, credential=teleport_westus3_SAS)
 public_storage_base_url = 'https://mlvideopub.blob.core.windows.net/teleportvideo/'
 public_storage_client = ContainerClient.from_container_url(public_storage_base_url, credential=public_storage_SAS)
 
@@ -52,10 +55,10 @@ def set_config_relative_urls(template):
     elif template == Template.TEMPLATE_PROBLEM_TOKEN:
         # Template problem Token
         # TODO add them to the storage
-        gold_relative_url = 'configs/master/09262024/tlp_gold_clips_b.csv'
-        tran_relative_url = 'configs/master/09262024/tlp_training_clips_b.csv'
-        trap_relative_url = 'configs/master/09262024/tlp_trapping_clips_b.csv'
-        config_relative_url = 'configs/master/09262024/master_c.cfg'
+        gold_relative_url = 'configs/master/03192025/tlp_gold_clips_pt.csv'
+        tran_relative_url = 'configs/master/03192025/tlp_training_clips_pt.csv'
+        trap_relative_url = 'configs/master/03192025/tlp_trapping_clips_pt.csv'
+        config_relative_url = 'configs/master/03192025/master_pt.cfg'
 
 def create_local_config(folder, relative_url, version):
     blob = subjective_client.get_blob_client(relative_url)
@@ -109,7 +112,10 @@ def create_evaluation_folder(folder, input_csv, version, output_csv, strip_audio
             
             # Download original video
             original_path = os.path.join(temp_dir, os.path.basename(blob_name))
-            source_blob_url = row['clip_url'] + cq_storage_SAS
+            if row['clip_url'].startswith(teleport_westus3_base_url):
+                source_blob_url = row['clip_url'] + teleport_westus3_SAS
+            else:
+                source_blob_url = row['clip_url'] + cq_storage_SAS
             
             # Get the blob client for the source blob
             source_container_name = row['clip_url'].split('/')[3]
@@ -117,7 +123,10 @@ def create_evaluation_folder(folder, input_csv, version, output_csv, strip_audio
             
             # Download the blob to local file
             with open(original_path, 'wb') as file:
-                blob_client = cq_storage_client.get_blob_client(source_blob_name)
+                if row['clip_url'].startswith(teleport_westus3_base_url):
+                    blob_client = teleport_westus3_client.get_blob_client(source_blob_name)
+                else:
+                    blob_client = cq_storage_client.get_blob_client(source_blob_name)
                 download_data = blob_client.download_blob()
                 file.write(download_data.readall())
             
@@ -143,14 +152,15 @@ def create_evaluation_folder(folder, input_csv, version, output_csv, strip_audio
             os.rmdir(temp_dir)
         else:
             # Original implementation - copy directly
+            storage_sas = cq_storage_SAS if not row['clip_url'].startswith(teleport_westus3_base_url) else teleport_westus3_SAS
             subjective_client.get_blob_client(blob_name).start_copy_from_url(
-                row['clip_url'] + cq_storage_SAS,
+                row['clip_url'] + storage_sas,
                 requires_sync=True
             )
             subjective_client.get_blob_client(blob_name).set_http_headers(content_settings=content_settings)
             
             public_storage_client.get_blob_client(blob_name).start_copy_from_url(
-                row['clip_url'] + cq_storage_SAS,
+                row['clip_url'] + storage_sas,
                 requires_sync=True
             )
             public_storage_client.get_blob_client(blob_name).set_http_headers(content_settings=content_settings)
@@ -182,6 +192,7 @@ def merge_clips_into_side_by_side(merge_csv_file, strip_audio=False):
     # create temp folder
     if not os.path.exists(TMP_FOLDER):
         os.makedirs(TMP_FOLDER)
+    TARGET_HEIGHT = 720  # common height for hstack; adjust if needed
     for index, row in data.iterrows():
         try:
             model = row['model']  # model	type	clip_avatar	clip_real
@@ -204,18 +215,25 @@ def merge_clips_into_side_by_side(merge_csv_file, strip_audio=False):
             # add suffix 'merged' to avatar file
             merged = avatar_path.replace('.mp4', '_merged.mp4')
 
+            # Build a filter that forces both inputs to the same height and stacks them
+            vf = (
+                f'[0:v]scale=-2:{TARGET_HEIGHT},setpts=PTS-STARTPTS[v0];'
+                f'[1:v]scale=-2:{TARGET_HEIGHT},setpts=PTS-STARTPTS[v1];'
+                f'[v0][v1]hstack=inputs=2,format=yuv420p[v]'
+            )
+
             # Command to merge videos side-by-side
             if strip_audio:
                 command_to_run = (
                     'ffmpeg -y -i {0} -i {1} -filter_complex '
                     '"[0:v]scale=-1:ih[vid1];[1:v]scale=-1:ih[vid2];[vid1][vid2]hstack=inputs=2[v]" '
-                    '-map "[v]" -an {2}'
+                    '-map "[v]" -c:v libx264 -crf 17 -preset slow -an {2}'
                 ).format(avatar_path, real_path, merged)
             else:
                 command_to_run = (
                     'ffmpeg -y -i {0} -i {1} -filter_complex '
                     '"[0:v]scale=-1:ih[vid1];[1:v]scale=-1:ih[vid2];[vid1][vid2]hstack=inputs=2[v]" '
-                    '-map "[v]" -map 0:a -c:a copy {2}'
+                    '-map "[v]" -c:v libx264 -crf 17 -preset slow -map 0:a -c:a copy {2}'
                 ).format(avatar_path, real_path, merged)
 
             print('Running: ' + command_to_run)
@@ -295,10 +313,10 @@ def strip_audio_from_video(input_path, output_path=None):
     
     return output_path
 
-csv_file = r'C:\Users\vigopal\source\repos\P.910\src\06_01_2025\rating_source_noaudio.csv'
-template = Template.TEMPLATE_A
-eval_ver = '06_01_2025_noaudio'
-csv_output = 'rating_clips_noaudio_a.csv'
+csv_file = r'C:\Users\vigopal\source\repos\P.910\src\09_24_2025\rating_source_noaudio.csv'
+template = Template.TEMPLATE_PROBLEM_TOKEN
+eval_ver = '09_24_2025_noaudio'
+csv_output = 'rating_source_noaudio_pt.csv'
 # Set to True to strip audio from all videos
 strip_audio = True
 set_config_relative_urls(template)
