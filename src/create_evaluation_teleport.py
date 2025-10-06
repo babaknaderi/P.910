@@ -54,7 +54,6 @@ def set_config_relative_urls(template):
         config_relative_url = 'configs/master/03192025/master_b.cfg'    
     elif template == Template.TEMPLATE_PROBLEM_TOKEN:
         # Template problem Token
-        # TODO add them to the storage
         gold_relative_url = 'configs/master/03192025/tlp_gold_clips_pt.csv'
         tran_relative_url = 'configs/master/03192025/tlp_training_clips_pt.csv'
         trap_relative_url = 'configs/master/03192025/tlp_trapping_clips_pt.csv'
